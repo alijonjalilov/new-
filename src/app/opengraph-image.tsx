@@ -1,10 +1,11 @@
 import { ImageResponse } from "next/og";
+import { site } from "@/content/site";
 
 // Генерирует превью для соцсетей (Open Graph). Текст латиницей —
 // встроенный шрифт ImageResponse не содержит кириллицы.
 // Чтобы использовать своё фото, положите /public/og.jpg и удалите этот файл,
 // а в layout.tsx добавьте openGraph.images.
-export const alt = "HOST NAME — Event host";
+export const alt = `${site.hostNameLatin}, journalist and event host`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -23,8 +24,8 @@ export default function OpengraphImage() {
           color: "#fafaf8",
         }}
       >
-        <div style={{ fontSize: 120, letterSpacing: -4, lineHeight: 1 }}>HOST NAME</div>
-        <div style={{ fontSize: 40, color: "#c9a66b", marginTop: 28 }}>Event host: weddings, conferences, corporate events</div>
+        <div style={{ fontSize: 120, letterSpacing: -4, lineHeight: 1 }}>{site.hostNameLatin}</div>
+        <div style={{ fontSize: 40, color: "#c9a66b", marginTop: 28 }}>Journalist, TV host, wedding and event host</div>
       </div>
     ),
     size,

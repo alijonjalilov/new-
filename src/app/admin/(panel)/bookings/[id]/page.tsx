@@ -40,7 +40,7 @@ export default async function BookingDetailPage({ params }: Props) {
     { label: "Город", value: b.city },
     { label: "Площадка / адрес", value: b.address },
     { label: "Гостей", value: b.guests },
-    { label: "Язык", value: b.language },
+    { label: "Язык второго ведущего", value: b.language },
   ];
 
   return (

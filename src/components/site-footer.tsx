@@ -9,7 +9,10 @@ export function SiteFooter() {
       <div className="container-site grid gap-12 py-16 md:grid-cols-[1.4fr_1fr_1fr] md:py-20">
         <div>
           <p className="font-display text-2xl font-light tracking-tight md:text-3xl">{site.hostName}</p>
-          <p className="mt-3 max-w-sm text-paper/70">{site.subtitle}</p>
+          <p className="mt-3 max-w-sm text-paper/70">{site.role}</p>
+          <p className="mt-2 max-w-sm text-sm text-paper/55">
+            {site.city}. {site.travel}.
+          </p>
           <Link href="/booking" className="btn btn-brass mt-8">
             Забронировать дату
           </Link>
@@ -58,11 +61,13 @@ export function SiteFooter() {
                 Instagram
               </a>
             </li>
-            <li>
-              <a href={contactLinks.email} className="text-paper/85 hover:text-brass">
-                {site.contacts.email}
-              </a>
-            </li>
+            {site.contacts.email && (
+              <li>
+                <a href={contactLinks.email} className="text-paper/85 hover:text-brass">
+                  {site.contacts.email}
+                </a>
+              </li>
+            )}
           </ul>
         </div>
       </div>

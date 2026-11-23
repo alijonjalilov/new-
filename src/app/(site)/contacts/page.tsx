@@ -6,17 +6,20 @@ import { contactLinks, site } from "@/content/site";
 
 export const metadata: Metadata = {
   title: "Контакты",
-  description: `Связаться с ведущим ${site.hostName}: телефон, WhatsApp, Telegram, Instagram, e-mail.`,
+  description: `Связаться с ведущим ${site.hostName}: телефон, WhatsApp, Telegram, Instagram. ${site.city}.`,
   alternates: { canonical: "/contacts" },
 };
 
-const channels = [
+const allChannels = [
   { label: "Телефон", value: site.contacts.phone, href: contactLinks.phone, icon: Phone, external: false },
   { label: "WhatsApp", value: "Написать в WhatsApp", href: contactLinks.whatsapp, icon: MessageCircle, external: true },
   { label: "Telegram", value: `@${site.contacts.telegram}`, href: contactLinks.telegram, icon: Send, external: true },
   { label: "Instagram", value: `@${site.contacts.instagram}`, href: contactLinks.instagram, icon: Camera, external: true },
   { label: "Электронная почта", value: site.contacts.email, href: contactLinks.email, icon: AtSign, external: false },
 ];
+
+// Пустые контакты (например, не указанная почта) не показываем
+const channels = allChannels.filter((c) => c.href && c.value);
 
 export default function ContactsPage() {
   return (
@@ -49,7 +52,9 @@ export default function ContactsPage() {
           <Link href="/booking" className="btn btn-brass mt-8 w-full sm:w-auto">
             Оформить заявку
           </Link>
-          <p className="mt-6 text-sm text-paper/55">{site.city}</p>
+          <p className="mt-6 text-sm text-paper/55">
+            {site.city}. {site.travel}.
+          </p>
         </aside>
       </section>
     </>

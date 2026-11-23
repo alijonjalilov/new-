@@ -9,6 +9,8 @@ interface PhotoProps {
   className?: string;
   priority?: boolean;
   sizes?: string;
+  /** Какая часть фото важнее при обрезке, например "top" (лицо) */
+  position?: string;
 }
 
 /**
@@ -16,11 +18,11 @@ interface PhotoProps {
  * показывается «бархатная» заглушка с подсказкой, что сюда загрузить.
  * Родитель задаёт размеры/пропорции (например, aspect-[4/5]).
  */
-export function Photo({ src, alt, placeholder, className, priority, sizes = "100vw" }: PhotoProps) {
+export function Photo({ src, alt, placeholder, className, priority, sizes = "100vw", position = "center" }: PhotoProps) {
   if (src) {
     return (
       <div className={cn("relative overflow-hidden bg-velvet", className)}>
-        <Image src={src} alt={alt} fill priority={priority} sizes={sizes} className="object-cover" />
+        <Image src={src} alt={alt} fill priority={priority} sizes={sizes} className="object-cover" style={{ objectPosition: position }} />
       </div>
     );
   }

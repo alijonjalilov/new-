@@ -8,7 +8,7 @@ import { TestimonialCard } from "@/components/testimonial-card";
 import { eventCategories } from "@/content/events";
 import { portfolioItems } from "@/content/portfolio";
 import { testimonials } from "@/content/testimonials";
-import { site } from "@/content/site";
+import { contactLinks, site } from "@/content/site";
 import { siteUrl } from "@/lib/site";
 import { BookingBand } from "@/components/booking-band";
 
@@ -21,8 +21,10 @@ export default function HomePage() {
     description: site.subtitle,
     url: siteUrl(),
     telephone: site.contacts.phone,
-    email: site.contacts.email,
-    address: { "@type": "PostalAddress", addressLocality: site.city },
+    ...(site.contacts.email ? { email: site.contacts.email } : {}),
+    alternateName: site.hostNameLatin,
+    sameAs: [contactLinks.instagram, contactLinks.telegram],
+    address: { "@type": "PostalAddress", addressLocality: "Душанбе", addressCountry: "TJ" },
   };
 
   return (

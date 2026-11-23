@@ -26,6 +26,11 @@ export const metadata: Metadata = {
   description: site.subtitle,
   applicationName: site.hostName,
   keywords: [
+    "Субхон Джалилов",
+    "Subhon Jalilov",
+    "Имкон",
+    "Азия-Плюс",
+    "ведущий свадеб Душанбе",
     "ведущий мероприятий",
     "ведущий на свадьбу",
     "ведущий конференций",

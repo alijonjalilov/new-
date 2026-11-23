@@ -59,22 +59,6 @@ const GUESTS_BUSINESS: Option[] = [
   { value: "gt500", label: "Более 500" },
 ];
 
-const LANG_PRIVATE: Option[] = [
-  { value: "tg", label: "Таджикский" },
-  { value: "ru", label: "Русский" },
-  { value: "en", label: "Английский" },
-  { value: "tg-ru", label: "Таджикский + русский" },
-  { value: "multi", label: "Несколько языков" },
-];
-
-const LANG_BUSINESS: Option[] = [
-  { value: "ru", label: "Русский" },
-  { value: "tg", label: "Таджикский" },
-  { value: "en", label: "Английский" },
-  { value: "two", label: "Два языка" },
-  { value: "three+", label: "Три языка и более" },
-];
-
 const HOSTING_STYLE: Option[] = [
   { value: "classic", label: "Классический", hint: "Элегантно и по канону" },
   { value: "modern", label: "Современный", hint: "Легко, живо, без шаблонов" },
@@ -194,15 +178,6 @@ const guestsQ = (options: Option[], title = "Сколько гостей ожи�
   field: "guests",
 });
 
-const languageQ = (options: Option[], title = "На каком языке должен работать ведущий?"): Question => ({
-  id: "language",
-  type: "single",
-  title,
-  options,
-  summaryLabel: "Язык",
-  field: "language",
-});
-
 const durationQ = (): Question => ({
   id: "duration",
   type: "single",
@@ -253,6 +228,49 @@ const musicBlock = (title = "Планируется ли музыкальная 
   },
 ];
 
+/**
+ * Второй ведущий. Сам ведущий работает на таджикском языке,
+ * поэтому язык спрашиваем только для второго ведущего — и только если он нужен.
+ */
+const secondHostBlock = (title = "Нужен ли второй ведущий?"): Question[] => [
+  {
+    id: "secondHost",
+    type: "single",
+    title,
+    description: "Я веду мероприятия на таджикском языке. Если нужен ещё один язык, его может взять на себя второй ведущий.",
+    options: YES_NO_MAYBE,
+    summaryLabel: "Второй ведущий",
+  },
+  {
+    id: "secondHostLanguage",
+    type: "single",
+    title: "На каком языке должен вести второй ведущий?",
+    options: [
+      { value: "ru", label: "Русский" },
+      { value: "en", label: "Английский" },
+      { value: "uz", label: "Узбекский" },
+      { value: "tg", label: "Таджикский" },
+      { value: "other", label: "Другой язык" },
+    ],
+    otherValue: "other",
+    otherPlaceholder: "Какой язык?",
+    summaryLabel: "Язык второго ведущего",
+    field: "language",
+    showIf: is("secondHost", "yes"),
+  },
+  {
+    id: "secondHostDetails",
+    type: "textarea",
+    title: "Есть ли пожелания ко второму ведущему?",
+    description: "Необязательно. Например: роль в программе, стиль, нужен ли ведущий-женщина.",
+    placeholder: "Ваши пожелания",
+    summaryLabel: "Пожелания ко второму ведущему",
+    optional: true,
+    maxLength: 600,
+    showIf: is("secondHost", "yes"),
+  },
+];
+
 /* ───────────────────────── Сценарии ───────────────────────── */
 
 const WEDDING: Scenario = {
@@ -279,24 +297,7 @@ const WEDDING: Scenario = {
     venueNameQ(),
     timeQ(),
     guestsQ(GUESTS_PRIVATE),
-    languageQ(LANG_PRIVATE),
-    {
-      id: "secondHost",
-      type: "single",
-      title: "Нужен ли второй ведущий?",
-      options: YES_NO_MAYBE,
-      summaryLabel: "Второй ведущий",
-    },
-    {
-      id: "secondHostDetails",
-      type: "textarea",
-      title: "Расскажите о втором ведущем",
-      description: "Сколько ведущих нужно и какие пожелания: язык, стиль, роль в программе.",
-      placeholder: "Например: один со-ведущий на таджикском языке",
-      summaryLabel: "Пожелания ко второму ведущему",
-      maxLength: 600,
-      showIf: is("secondHost", "yes"),
-    },
+    ...secondHostBlock(),
     ...musicBlock(),
     {
       id: "artists",
@@ -381,7 +382,6 @@ const CONFERENCE: Scenario = {
       options: STATUS_LEVEL,
       summaryLabel: "Статус",
     },
-    languageQ(LANG_BUSINESS, "На каком языке необходимо вести мероприятие?"),
     {
       id: "interpretation",
       type: "single",
@@ -441,13 +441,7 @@ const CONFERENCE: Scenario = {
       options: SCRIPT_READY,
       summaryLabel: "Сценарий",
     },
-    {
-      id: "coModerator",
-      type: "single",
-      title: "Нужен ли дополнительный модератор или второй ведущий?",
-      options: YES_NO_MAYBE,
-      summaryLabel: "Второй модератор",
-    },
+    ...secondHostBlock("Нужен ли второй ведущий или модератор?"),
     budgetQ(BUSINESS_BUDGET),
   ],
 };
@@ -496,7 +490,7 @@ const CORPORATE: Scenario = {
     venueTypeQ(),
     venueNameQ(),
     guestsQ(GUESTS_PRIVATE),
-    languageQ(LANG_PRIVATE, "На каком языке проводить мероприятие?"),
+    ...secondHostBlock(),
     durationQ(),
     ...musicBlock("Нужен ли DJ или музыкальная программа?"),
     {
@@ -546,7 +540,7 @@ const BIRTHDAY: Scenario = {
     venueTypeQ(),
     venueNameQ(),
     guestsQ(GUESTS_PRIVATE),
-    languageQ(LANG_PRIVATE, "На каком языке проводить праздник?"),
+    ...secondHostBlock(),
     {
       id: "format",
       type: "single",
@@ -628,7 +622,7 @@ const OFFICIAL: Scenario = {
       options: STATUS_LEVEL,
       summaryLabel: "Статус",
     },
-    languageQ(LANG_BUSINESS, "На каком языке необходимо вести мероприятие?"),
+    ...secondHostBlock(),
     {
       id: "officials",
       type: "single",
@@ -683,7 +677,7 @@ const OTHER: Scenario = {
     venueTypeQ(),
     venueNameQ(),
     guestsQ(GUESTS_PRIVATE),
-    languageQ(LANG_PRIVATE),
+    ...secondHostBlock(),
     durationQ(),
     {
       id: "requirements",

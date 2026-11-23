@@ -50,7 +50,10 @@ export function Hero() {
               {site.tagline}
             </motion.span>
           </h1>
-          <motion.p {...fade(0.7)} className="t-lead measure mt-5">
+          <motion.p {...fade(0.65)} className="mt-6 text-paper/90 md:text-lg">
+            {site.role}
+          </motion.p>
+          <motion.p {...fade(0.7)} className="t-lead measure mt-3">
             {site.subtitle}. {site.description}
           </motion.p>
           <motion.div {...fade(0.85)} className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -71,7 +74,8 @@ export function Hero() {
         >
           <Photo
             src={site.photos.hero}
-            alt={`${site.hostName}, ведущий мероприятий`}
+            alt={`${site.hostName} — ${site.role.toLowerCase()}`}
+            position="center top"
             placeholder="Портрет ведущего (вертикальный, 4:5)"
             priority
             sizes="(min-width: 1024px) 40vw, 90vw"

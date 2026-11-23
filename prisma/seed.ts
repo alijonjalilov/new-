@@ -22,7 +22,7 @@ const demo: { eventType: EventTypeKey; answers: Answers; name: string; status: "
     status: "NEW",
     answers: {
       weddingType: "national", date: inDays(60), city: "Душанбе", venueType: "restaurant", time: "17:00",
-      guests: "200-300", language: "tg-ru", secondHost: "no", music: "yes", musicTypes: ["dj", "national"],
+      guests: "200-300", secondHost: "yes", secondHostLanguage: "ru", music: "yes", musicTypes: ["dj", "national"],
       style: "modern", budget: "discuss",
     },
   },
@@ -32,9 +32,9 @@ const demo: { eventType: EventTypeKey; answers: Answers; name: string; status: "
     status: "IN_PROGRESS",
     answers: {
       conferenceType: "international", topic: "Тестовая тема", date: inDays(30), city: "Душанбе",
-      venueType: "hotel", guests: "100-300", level: "international", language: "three+", interpretation: "yes",
+      venueType: "hotel", guests: "100-300", level: "international", interpretation: "yes",
       speakers: "4-10", officials: "yes", hostingFormat: ["full", "panels"], duration: "day", script: "draft",
-      coModerator: "maybe", budget: "b3",
+      secondHost: "maybe", budget: "b3",
     },
   },
   {
@@ -43,7 +43,7 @@ const demo: { eventType: EventTypeKey; answers: Answers; name: string; status: "
     status: "CONFIRMED",
     answers: {
       corporateType: "new-year", company: "Тестовая компания", date: inDays(25), city: "Худжанд",
-      venueType: "hall", guests: "100-200", language: "ru", duration: "hours", music: "maybe",
+      venueType: "hall", guests: "100-200", secondHost: "no", duration: "hours", music: "maybe",
       showProgram: "yes", style: "energetic", budget: "b2",
     },
   },
