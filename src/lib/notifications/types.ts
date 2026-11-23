@@ -9,6 +9,8 @@ export interface BookingNotification {
   comment?: string | null;
   summary: { label: string; value: string }[];
   adminUrl?: string;
+  /** Предупреждение: дата и время пересекаются с подтверждённой заявкой */
+  warning?: string | null;
 }
 
 export interface NotificationChannel {

@@ -4,7 +4,9 @@ import { BookingStatus, EventType } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { BOOKING_STATUSES, EVENT_TYPES, EVENT_TYPE_BY_KEY } from "@/lib/booking/event-types";
 import { formatDateRu } from "@/lib/booking/engine";
-import { StatusBadge } from "@/components/admin/status-badge";
+import { BusyBadge, StatusBadge } from "@/components/admin/status-badge";
+import { conflictMessage, findConflicts } from "@/lib/booking/schedule";
+import { loadConfirmedOn, scheduleSelect, toScheduleItem } from "@/lib/booking/schedule-db";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -88,14 +90,16 @@ type DashboardData = {
     confirmed: number;
     filteredCount: number;
     rows: Prisma.BookingGetPayload<{
-      select: { id: true; number: true; eventType: true; status: true; eventDate: true; city: true; guests: true; clientName: true; phone: true; createdAt: true };
+      select: { id: true; number: true; eventType: true; status: true; eventDate: true; eventTime: true; answers: true; city: true; guests: true; clientName: true; phone: true; createdAt: true };
     }>[];
+    /** id заявки → текст предупреждения о занятости */
+    busy: Record<string, string>;
   };
 
 async function loadDashboard(f: Filters, where: Prisma.BookingWhereInput): Promise<DashboardData | null> {
   try {
     const countType = (eventType: EventType) => prisma.booking.count({ where: { eventType } });
-    const [total, weddings, conferences, corporates, newCount, confirmed, filteredCount, rows] = await Promise.all([
+    const [total, weddings, conferences, corporates, newCount, confirmedCount, filteredCount, rows] = await Promise.all([
       prisma.booking.count(),
       countType("WEDDING"),
       countType("CONFERENCE"),
@@ -108,11 +112,19 @@ async function loadDashboard(f: Filters, where: Prisma.BookingWhereInput): Promi
         orderBy: { createdAt: "desc" },
         skip: (f.page - 1) * PAGE_SIZE,
         take: PAGE_SIZE,
-        select: { id: true, number: true, eventType: true, status: true, eventDate: true, city: true, guests: true, clientName: true, phone: true, createdAt: true },
+        select: { ...scheduleSelect, city: true, guests: true, phone: true, createdAt: true },
       }),
     ]);
+    // Отмечаем заявки, которые пересекаются с уже подтверждёнными
+    const items = rows.map(toScheduleItem);
+    const confirmed = await loadConfirmedOn(items.map((i) => i.date));
+    const busy: Record<string, string> = {};
+    for (const it of items) {
+      const msg = conflictMessage(findConflicts(it, confirmed));
+      if (msg) busy[it.id] = msg;
+    }
     const byType: Record<string, number> = { WEDDING: weddings, CONFERENCE: conferences, CORPORATE: corporates };
-    return { total, byType, newCount, confirmed, filteredCount, rows };
+    return { total, byType, newCount, confirmed: confirmedCount, filteredCount, rows, busy };
   } catch (error) {
     console.error("[admin] Ошибка загрузки заявок:", error);
     return null;
@@ -272,7 +284,10 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
                     <td className="px-5 py-4">{r.city ?? "—"}</td>
                     <td className="px-5 py-4">{r.guests ?? "—"}</td>
                     <td className="px-5 py-4">
-                      <StatusBadge status={r.status} />
+                      <div className="flex flex-col items-start gap-1">
+                        <StatusBadge status={r.status} />
+                        {data.busy[r.id] && <BusyBadge title={data.busy[r.id]} />}
+                      </div>
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-muted">{r.createdAt.toLocaleDateString("ru-RU")}</td>
                   </tr>
@@ -293,8 +308,12 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
                         №{r.number}, {EVENT_TYPE_BY_KEY[r.eventType].label}
                       </p>
                     </div>
-                    <StatusBadge status={r.status} />
+                    <div className="flex flex-col items-end gap-1">
+                      <StatusBadge status={r.status} />
+                      {data.busy[r.id] && <BusyBadge />}
+                    </div>
                   </div>
+                  {data.busy[r.id] && <p className="mt-3 text-sm text-danger">{data.busy[r.id]}</p>}
                   <p className="mt-3 text-sm text-muted">
                     {[r.eventDate ? formatDateRu(r.eventDate.toISOString().slice(0, 10)) : null, r.city, r.guests ? `${r.guests} гостей` : null]
                       .filter(Boolean)

@@ -14,13 +14,16 @@ export default async function AdminPanelLayout({ children }: { children: React.R
     <>
       <header className="border-b border-line bg-white">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 sm:gap-6">
             {/* Название сайта — ссылка на главную страницу */}
             <Link href="/" className="font-display text-base tracking-tight hover:text-brass-deep" title="На главную страницу сайта">
               {site.hostName}
             </Link>
             <Link href="/admin" className="text-sm text-muted hover:text-ink">
               Заявки
+            </Link>
+            <Link href="/admin/calendar" className="text-sm text-muted hover:text-ink">
+              Календарь
             </Link>
           </div>
           <div className="flex items-center gap-3 text-sm">

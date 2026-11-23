@@ -7,6 +7,8 @@ import { EVENT_TYPE_BY_KEY } from "@/lib/booking/event-types";
 import { notifyNewBooking } from "@/lib/notifications";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { siteUrl } from "@/lib/site";
+import { conflictMessage, findConflicts } from "@/lib/booking/schedule";
+import { loadConfirmedOn } from "@/lib/booking/schedule-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -67,6 +69,20 @@ export async function POST(request: Request) {
       select: { id: true, number: true },
     });
 
+    // Проверяем, не занят ли ведущий в это время (ошибка проверки не мешает заявке)
+    let warning: string | null = null;
+    try {
+      const date = core.eventDate ?? null;
+      warning = conflictMessage(
+        findConflicts(
+          { id: booking.id, number: booking.number, eventType, status: "NEW", date, time: core.eventTime ?? null, answers: { raw: answers } },
+          await loadConfirmedOn([date]),
+        ),
+      );
+    } catch (e) {
+      console.error("[bookings] Не удалось проверить занятость:", e);
+    }
+
     // Уведомления не блокируют ответ дольше нескольких секунд и не ломают сохранение
     await notifyNewBooking({
       id: booking.id,
@@ -79,6 +95,7 @@ export async function POST(request: Request) {
       comment: nullIfEmpty(contact.comment),
       summary,
       adminUrl: `${siteUrl()}/admin/bookings/${booking.id}`,
+      warning,
     }).catch((e) => console.error("[notifications]", e));
 
     return NextResponse.json({ ok: true, number: booking.number }, { status: 201 });

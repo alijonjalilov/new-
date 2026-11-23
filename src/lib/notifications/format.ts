@@ -3,6 +3,7 @@ import type { BookingNotification } from "./types";
 export function plainTextNotification(n: BookingNotification): string {
   const lines = [
     `Новая заявка №${n.number} — ${n.eventTypeLabel}`,
+    n.warning ? `\n⚠️ ${n.warning}` : null,
     "",
     `Клиент: ${n.clientName}`,
     `Телефон: ${n.phone}`,

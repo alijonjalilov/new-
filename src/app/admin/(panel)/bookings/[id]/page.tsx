@@ -7,6 +7,8 @@ import { buildSummary, formatDateRu, type SummaryItem } from "@/lib/booking/engi
 import type { Answers } from "@/lib/booking/types";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { BookingActions } from "@/components/admin/booking-actions";
+import { conflictMessage, eventWindow, findConflicts, formatWindow } from "@/lib/booking/schedule";
+import { loadConfirmedOn, toScheduleItem } from "@/lib/booking/schedule-db";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Заявка" };
@@ -33,10 +35,12 @@ export default async function BookingDetailPage({ params }: Props) {
   if (!b) notFound();
 
   const summary = readSummary(b.eventType, b.answers);
+  const item = toScheduleItem(b);
+  const busy = conflictMessage(findConflicts(item, await loadConfirmedOn([item.date])));
 
   const key = [
     { label: "Дата", value: b.eventDate ? formatDateRu(b.eventDate.toISOString().slice(0, 10)) : null },
-    { label: "Время", value: b.eventTime },
+    { label: "Время", value: b.eventTime ? `${b.eventTime} (примерно ${formatWindow(eventWindow(item))})` : null },
     { label: "Город", value: b.city },
     { label: "Площадка / адрес", value: b.address },
     { label: "Гостей", value: b.guests },
@@ -58,6 +62,18 @@ export default async function BookingDetailPage({ params }: Props) {
         </div>
         <StatusBadge status={b.status} />
       </div>
+
+      {busy && (
+        <div role="alert" className="rounded-2xl border border-danger/30 bg-danger/5 p-5 text-danger">
+          <p className="font-medium">Вы уже заняты в это время</p>
+          <p className="mt-1 text-sm">{busy}</p>
+          {item.date && (
+            <Link href={`/admin/calendar?month=${item.date.slice(0, 7)}&day=${item.date}`} className="mt-2 inline-block text-sm underline">
+              Открыть день в календаре
+            </Link>
+          )}
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
         <div className="space-y-6">
