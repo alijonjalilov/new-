@@ -1,0 +1,68 @@
+// Prisma schema — заявки на проведение мероприятий.
+// Документация: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Тип мероприятия (первый шаг анкеты)
+enum EventType {
+  WEDDING    // Свадьба
+  CONFERENCE // Конференция / форум
+  CORPORATE  // Корпоратив
+  BIRTHDAY   // День рождения / юбилей
+  OFFICIAL   // Презентация / официальное мероприятие
+  OTHER      // Другое
+}
+
+/// Статус обработки заявки
+enum BookingStatus {
+  NEW         // Новая
+  IN_PROGRESS // В обработке
+  CONTACTED   // Связались с клиентом
+  CONFIRMED   // Подтверждена
+  REJECTED    // Отклонена
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  /// Человекочитаемый номер заявки (№1, №2, …)
+  number    Int           @unique @default(autoincrement())
+  eventType EventType
+  status    BookingStatus @default(NEW)
+
+  // Ключевые поля — вынесены в колонки для фильтрации и поиска
+  eventDate DateTime?     @db.Date
+  eventTime String?
+  city      String?
+  address   String?
+  guests    String?
+  language  String?
+
+  /// Все ответы анкеты (включая специфичные для сценария) в виде JSON
+  answers   Json
+
+  // Контакты клиента
+  clientName String
+  phone      String
+  whatsapp   String?
+  email      String?
+  comment    String?
+
+  /// Внутренняя заметка администратора
+  adminNote  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventType])
+  @@index([status])
+  @@index([createdAt])
+  @@index([eventDate])
+}

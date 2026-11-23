@@ -1,0 +1,193 @@
+# Сайт ведущего мероприятий
+
+Персональный сайт ведущего (Event Host / MC) с интерактивным бронированием, сохранением заявок в PostgreSQL и защищённой админ-панелью. Готов к загрузке на GitHub и деплою на Railway.
+
+## Что внутри
+
+- **Публичный сайт:** главная, «Обо мне», «Мероприятия» (5 категорий с отдельными страницами), портфолио с фильтрами и YouTube-видео, отзывы, контакты.
+- **Бронирование** (`/booking`): пошаговая анкета, один вопрос на экране. Вопросы зависят от типа мероприятия и предыдущих ответов, есть прогресс, кнопки «Назад» / «Продолжить», резюме с возможностью изменить любой ответ и форма контактов. Незаконченная анкета сохраняется в браузере.
+- **Админ-панель** (`/admin`): вход по логину и паролю, статистика, список заявок с поиском и фильтрами (тип, статус, дата мероприятия или дата заявки), карточка заявки, смена статуса, заметки, удаление с подтверждением.
+- **Уведомления:** Telegram и/или e-mail (Resend). Без ключей всё работает, заявки просто сохраняются в базе.
+- **SEO:** метаданные для каждой страницы, Open Graph, `sitemap.xml`, `robots.txt`, разметка schema.org, семантический HTML, оптимизация изображений через `next/image`.
+
+## Технологии
+
+| Слой | Инструменты |
+| --- | --- |
+| Frontend | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, Framer Motion |
+| Backend | Next.js Route Handlers |
+| База данных | PostgreSQL + Prisma ORM 6 |
+| Формы и валидация | React Hook Form + Zod 4 (общие схемы для браузера и сервера) |
+
+## Структура проекта
+
+```
+prisma/
+  schema.prisma              модель Booking, статусы и типы мероприятий
+  migrations/                SQL-миграции (применяются автоматически при старте)
+  seed.ts                    демо-заявки для локальной проверки
+src/
+  app/
+    (site)/                  публичные страницы: главная, about, events, portfolio, reviews, contacts
+    booking/                 страница бронирования
+    admin/login/             вход в админ-панель
+    admin/(panel)/           защищённые страницы: список и карточка заявки
+    api/bookings/            приём заявок
+    api/admin/…              вход, выход, изменение и удаление заявок
+    api/health/              проверка работоспособности для Railway
+    sitemap.ts, robots.ts, opengraph-image.tsx
+  components/                UI: шапка, подвал, фото-заглушки, мастер бронирования, админка
+  content/                   ТЕКСТЫ И ДАННЫЕ САЙТА — правьте здесь
+  lib/
+    booking/scenarios.ts     ВОПРОСЫ АНКЕТЫ и условная логика
+    booking/engine.ts        видимость вопросов, валидация, резюме
+    booking/validation.ts    Zod-схемы (клиент + сервер)
+    notifications/           Telegram, e-mail; легко добавить новый канал
+    auth.ts                  сессии администратора (HMAC-подпись)
+  i18n/config.ts             заготовка под таджикский и английский
+```
+
+## Локальный запуск
+
+Нужны Node.js 20.9+ (рекомендуется 22) и PostgreSQL.
+
+```bash
+npm install
+cp .env.example .env          # заполните DATABASE_URL, ADMIN_*, SESSION_SECRET
+npx prisma migrate deploy     # создаст таблицы
+npm run db:seed               # (необязательно) 3 демо-заявки
+npm run dev                   # http://localhost:3000
+```
+
+Быстрый PostgreSQL через Docker:
+
+```bash
+docker run --name event-host-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=event_host -p 5432:5432 -d postgres:17
+```
+
+Проверка production-сборки локально:
+
+```bash
+npm run build && npm run start
+```
+
+## Переменные окружения
+
+| Переменная | Обязательна | Описание |
+| --- | --- | --- |
+| `DATABASE_URL` | да | Строка подключения PostgreSQL |
+| `ADMIN_USERNAME` | да | Логин администратора |
+| `ADMIN_PASSWORD` | да | Пароль администратора (длинный) |
+| `SESSION_SECRET` | да | Случайная строка от 32 символов для подписи сессий |
+| `NEXT_PUBLIC_SITE_URL` | желательно | Адрес сайта без `/` в конце (SEO, sitemap, ссылки в уведомлениях) |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | нет | Уведомления в Telegram |
+| `RESEND_API_KEY`, `NOTIFY_EMAIL_FROM`, `NOTIFY_EMAIL_TO` | нет | Уведомления на почту через Resend |
+
+Сгенерировать `SESSION_SECRET`:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Секреты хранятся только в `.env` (он в `.gitignore`) и в переменных Railway — в репозиторий они не попадают.
+
+## Деплой на Railway
+
+1. **Загрузите проект на GitHub:**
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit"
+   git branch -M main
+   git remote add origin https://github.com/<ваш-аккаунт>/<репозиторий>.git
+   git push -u origin main
+   ```
+2. В Railway: **New Project → Deploy from GitHub repo** и выберите репозиторий.
+3. В том же проекте: **New → Database → Add PostgreSQL**.
+4. Откройте сервис сайта → **Variables** и добавьте:
+   - `DATABASE_URL` = `${{Postgres.DATABASE_URL}}` (ссылка на сервис базы)
+   - `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `SESSION_SECRET`
+   - при необходимости переменные уведомлений
+5. **Settings → Networking → Generate Domain** — получите адрес вида `xxx.up.railway.app`. Добавьте `NEXT_PUBLIC_SITE_URL=https://xxx.up.railway.app` и перезапустите деплой (переменные `NEXT_PUBLIC_*` подставляются при сборке).
+6. Готово. Railway использует настройки из `railway.json`:
+   - сборка: `npm run build` (генерация Prisma Client + `next build`);
+   - запуск: `npm run start` — сначала `prisma migrate deploy` (применяет миграции), затем `next start` на порту `$PORT`;
+   - healthcheck: `/api/health` (проверяет подключение к базе).
+
+Админ-панель будет доступна по адресу `https://ваш-домен/admin`.
+
+## Как наполнить сайт
+
+| Что | Где |
+| --- | --- |
+| Имя, слоган, контакты, фото на главной | `src/content/site.ts` |
+| Категории мероприятий, тексты, YouTube-ссылки, фото | `src/content/events.ts` |
+| Портфолио (фото и видео) | `src/content/portfolio.ts` |
+| Отзывы | `src/content/testimonials.ts` |
+| Биография и достижения | `src/app/(site)/about/page.tsx` |
+| Вопросы анкеты, варианты ответов, бюджеты | `src/lib/booking/scenarios.ts` |
+
+Фотографии кладите в `public/images/…` и указывайте путь, например `"/images/host-hero.jpg"`. Пока фото нет, на его месте показывается аккуратная заглушка с подсказкой, какой снимок туда нужен. Для YouTube достаточно обычной ссылки (`https://youtu.be/…` или `https://www.youtube.com/watch?v=…`): плеер грузится только по клику, поэтому страница остаётся быстрой.
+
+Все тексты-заглушки помечены как заглушки. Реальные отзывы, награды и цифры опыта не выдуманы — их нужно добавить вам.
+
+## Как устроена анкета
+
+Каждый сценарий описан данными в `scenarios.ts`:
+
+```ts
+{
+  id: "secondHostDetails",
+  type: "textarea",
+  title: "Расскажите о втором ведущем",
+  summaryLabel: "Пожелания ко второму ведущему",
+  showIf: is("secondHost", "yes"),   // условная логика
+}
+```
+
+- Типы вопросов: `single`, `multi`, `text`, `textarea`, `date`, `time`, `number`.
+- `optional: true` — вопрос можно пропустить.
+- `otherValue: "other"` — при выборе «Другое» появится поле для уточнения.
+- `field: "city"` — ответ дублируется в отдельную колонку БД для фильтров.
+
+Сервер использует те же сценарии: он заново определяет, какие вопросы видел пользователь, отбрасывает ответы на скрытые вопросы и проверяет каждый ответ. При смене типа мероприятия ответы сбрасываются, а при изменении ответа удаляются ответы на вопросы, которые перестали быть видимыми.
+
+В базе вместе с заявкой хранится и читаемое резюме ответов, поэтому старые заявки остаются понятными, даже если вы потом поменяете вопросы.
+
+## Уведомления
+
+- **Telegram:** создайте бота у [@BotFather](https://t.me/BotFather), напишите ему любое сообщение, узнайте свой `chat_id` (например, через @userinfobot) и задайте `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID`.
+- **E-mail:** зарегистрируйтесь в [Resend](https://resend.com), подтвердите домен и задайте `RESEND_API_KEY`, `NOTIFY_EMAIL_FROM`, `NOTIFY_EMAIL_TO` (можно несколько адресов через запятую).
+- Новый канал (Slack, WhatsApp Business и т. п.): реализуйте интерфейс `NotificationChannel` в `src/lib/notifications/` и добавьте его в массив `CHANNELS`.
+
+Ошибка отправки уведомления не мешает сохранению заявки: она лишь записывается в лог.
+
+## Безопасность
+
+- Пароль администратора и секрет сессий — только в переменных окружения.
+- Сессия хранится в httpOnly-cookie, подписанной HMAC-SHA256; срок — 7 дней. Смена `SESSION_SECRET` или `ADMIN_USERNAME` разлогинивает все сессии.
+- Ограничение частоты: 5 попыток входа за 15 минут и 5 заявок за 10 минут с одного IP.
+- Скрытое поле-ловушка против спам-ботов в форме заявки.
+- Все входящие данные проверяются на сервере через Zod и логику сценариев.
+- Админ-панель и API закрыты от индексации.
+
+## Мультиязычность
+
+Сейчас интерфейс на русском. Тексты вынесены в `src/content/*` и `scenarios.ts`, поэтому добавление таджикского и английского сводится к трём шагам:
+
+1. Добавьте языки в `src/i18n/config.ts`.
+2. Создайте переводы контента (например, `src/content/tg/…`) или подключите [next-intl](https://next-intl.dev).
+3. Перенесите страницы в сегмент `src/app/[locale]/…` и укажите `alternates.languages` в метаданных.
+
+## Скрипты
+
+| Команда | Что делает |
+| --- | --- |
+| `npm run dev` | Режим разработки |
+| `npm run build` | Production-сборка |
+| `npm run start` | Миграции + запуск production-сервера |
+| `npm run typecheck` | Проверка типов TypeScript |
+| `npm run db:migrate` | Создать новую миграцию после изменения `schema.prisma` |
+| `npm run db:deploy` | Применить миграции |
+| `npm run db:studio` | Prisma Studio — просмотр базы в браузере |
+| `npm run db:seed` | Добавить демо-заявки (только для локальной базы) |

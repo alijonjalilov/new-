@@ -1,0 +1,95 @@
+import { NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/db";
+import { parseBookingSubmission } from "@/lib/booking/validation";
+import { buildSummary, extractCoreFields } from "@/lib/booking/engine";
+import { EVENT_TYPE_BY_KEY } from "@/lib/booking/event-types";
+import { notifyNewBooking } from "@/lib/notifications";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { siteUrl } from "@/lib/site";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const nullIfEmpty = (s: string | undefined | null) => (s && s.trim() ? s.trim() : null);
+
+export async function POST(request: Request) {
+  const limit = rateLimit(`booking:${clientIp(request.headers)}`, 5, 10 * 60 * 1000);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { ok: false, message: "Слишком много заявок подряд. Попробуйте позже или свяжитесь с нами напрямую." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfter) } },
+    );
+  }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ ok: false, message: "Некорректный запрос" }, { status: 400 });
+  }
+
+  // Ловушка для ботов: скрытое поле заполнено — делаем вид, что всё хорошо, но ничего не сохраняем
+  const honeypot = (body as { contact?: { website?: unknown } })?.contact?.website;
+  if (typeof honeypot === "string" && honeypot.length > 0) {
+    return NextResponse.json({ ok: true, number: 0 }, { status: 201 });
+  }
+
+  const parsed = parseBookingSubmission(body);
+  if (!parsed.ok) {
+    return NextResponse.json({ ok: false, message: parsed.message, fieldErrors: parsed.fieldErrors }, { status: 422 });
+  }
+
+  const { eventType, answers, contact } = parsed.data;
+  const core = extractCoreFields(eventType, answers);
+  const summary = buildSummary(eventType, answers);
+  const whatsapp = contact.sameWhatsapp ? contact.phone : contact.whatsapp;
+
+  try {
+    const booking = await prisma.booking.create({
+      data: {
+        eventType,
+        eventDate: core.eventDate ? new Date(`${core.eventDate}T00:00:00.000Z`) : null,
+        eventTime: core.eventTime ?? null,
+        city: core.city ?? null,
+        address: core.address ?? null,
+        guests: core.guests ?? null,
+        language: core.language ?? null,
+        // Сохраняем и «сырые» ответы, и читаемое резюме — так заявка
+        // останется понятной, даже если вопросы анкеты потом изменятся.
+        answers: { raw: answers, summary } as unknown as Prisma.InputJsonValue,
+        clientName: contact.name,
+        phone: contact.phone,
+        whatsapp: nullIfEmpty(whatsapp),
+        email: nullIfEmpty(contact.email),
+        comment: nullIfEmpty(contact.comment),
+      },
+      select: { id: true, number: true },
+    });
+
+    // Уведомления не блокируют ответ дольше нескольких секунд и не ломают сохранение
+    await notifyNewBooking({
+      id: booking.id,
+      number: booking.number,
+      eventTypeLabel: EVENT_TYPE_BY_KEY[eventType].label,
+      clientName: contact.name,
+      phone: contact.phone,
+      whatsapp: nullIfEmpty(whatsapp),
+      email: nullIfEmpty(contact.email),
+      comment: nullIfEmpty(contact.comment),
+      summary,
+      adminUrl: `${siteUrl()}/admin/bookings/${booking.id}`,
+    }).catch((e) => console.error("[notifications]", e));
+
+    return NextResponse.json({ ok: true, number: booking.number }, { status: 201 });
+  } catch (error) {
+    console.error("[bookings] Ошибка сохранения заявки:", error);
+    return NextResponse.json(
+      {
+        ok: false,
+        message: "Не удалось сохранить заявку. Пожалуйста, попробуйте ещё раз или свяжитесь с нами по телефону.",
+      },
+      { status: 500 },
+    );
+  }
+}
