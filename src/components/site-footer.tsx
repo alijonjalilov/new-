@@ -71,7 +71,13 @@ export function SiteFooter() {
           <p>
             © {year} {site.hostName}
           </p>
-          <p>{site.city}</p>
+          <p className="flex gap-6">
+            <span>{site.city}</span>
+            {/* Вход в админ-панель: незаметная ссылка для владельца сайта */}
+            <Link href="/admin" rel="nofollow" className="hover:text-brass">
+              Вход
+            </Link>
+          </p>
         </div>
       </div>
     </footer>
