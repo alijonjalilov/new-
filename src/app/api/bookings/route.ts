@@ -46,6 +46,7 @@ export async function POST(request: Request) {
   const core = extractCoreFields(eventType, answers);
   const summary = buildSummary(eventType, answers);
   const whatsapp = contact.sameWhatsapp ? contact.phone : contact.whatsapp;
+  const extraPhones = contact.extraPhones.map((p) => p.trim()).filter(Boolean);
 
   try {
     const booking = await prisma.booking.create({
@@ -63,7 +64,7 @@ export async function POST(request: Request) {
         clientName: contact.name,
         phone: contact.phone,
         whatsapp: nullIfEmpty(whatsapp),
-        email: nullIfEmpty(contact.email),
+        extraPhones,
         comment: nullIfEmpty(contact.comment),
       },
       select: { id: true, number: true },
@@ -91,7 +92,7 @@ export async function POST(request: Request) {
       clientName: contact.name,
       phone: contact.phone,
       whatsapp: nullIfEmpty(whatsapp),
-      email: nullIfEmpty(contact.email),
+      extraPhones,
       comment: nullIfEmpty(contact.comment),
       summary,
       adminUrl: `${siteUrl()}/admin/bookings/${booking.id}`,

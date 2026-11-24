@@ -72,9 +72,23 @@ export interface NumberQuestion extends BaseQuestion {
   min: number;
   max: number;
   placeholder?: string;
+  /** Подпись после числа, например «сомони» */
+  suffix?: string;
 }
 
-export type Question = ChoiceQuestion | TextQuestion | DateQuestion | TimeQuestion | NumberQuestion;
+/** Несколько текстовых полей с кнопкой «Добавить ещё» (например, имена певцов) */
+export interface ListQuestion extends BaseQuestion {
+  type: "list";
+  placeholder?: string;
+  /** Текст кнопки добавления поля */
+  addLabel: string;
+  /** Сколько полей показать сразу */
+  initialCount: number;
+  /** Максимум полей */
+  maxItems: number;
+}
+
+export type Question = ChoiceQuestion | TextQuestion | DateQuestion | TimeQuestion | NumberQuestion | ListQuestion;
 
 export interface Scenario {
   eventType: EventTypeKey;

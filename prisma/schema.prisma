@@ -51,6 +51,8 @@ model Booking {
   // Контакты клиента
   clientName String
   phone      String
+  /// Дополнительные номера телефона клиента
+  extraPhones String[]    @default([])
   whatsapp   String?
   email      String?
   comment    String?

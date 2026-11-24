@@ -220,6 +220,38 @@
   }
 }
 
+/* ── Карточки выбора в анкете ─────────────────────────────
+   Выбран вариант → остальные слегка тускнеют.
+   Наведение мышью → карточка чуть увеличивается, соседние тускнеют.
+   На телефонах (без наведения) работает только первое правило. */
+.opt {
+  transition:
+    opacity 0.2s ease-out,
+    transform 0.2s ease-out,
+    background-color 0.2s,
+    border-color 0.2s;
+}
+.opt-group .opt.opt-dim {
+  opacity: 0.55;
+}
+@media (hover: hover) {
+  .opt-group:hover .opt:not(:hover) {
+    opacity: 0.55;
+  }
+  .opt-group .opt:hover,
+  .opt-group .opt:focus-visible {
+    opacity: 1;
+  }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .opt-group .opt:hover {
+    transform: scale(1.025);
+  }
+}
+.opt-group .opt:focus-visible {
+  opacity: 1;
+}
+
 /* Фактура «бархата» для тёмных секций и заглушек фотографий */
 .velvet-texture {
   background-color: var(--color-velvet);

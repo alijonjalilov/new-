@@ -8,6 +8,7 @@ import {
   buildSummary,
   getVisibleQuestions,
   isEmptyAnswer,
+  normalizeAnswers,
   pruneAnswers,
   validateAllAnswers,
   validateAnswer,
@@ -72,7 +73,7 @@ export function BookingWizard({ initialType }: { initialType: EventTypeKey | nul
   const [contactDraft, setContactDraft] = useState<Partial<ContactInput>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
   const [serverError, setServerError] = useState<string | null>(null);
-  const [bookingNumber, setBookingNumber] = useState<number | null>(null);
+  const [clientName, setClientName] = useState("");
   const [restored, setRestored] = useState(false);
   const [ready, setReady] = useState(false);
 
@@ -244,7 +245,7 @@ export function BookingWizard({ initialType }: { initialType: EventTypeKey | nul
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventType, answers: pruneAnswers(eventType, answers), contact }),
+        body: JSON.stringify({ eventType, answers: normalizeAnswers(eventType, pruneAnswers(eventType, answers)), contact }),
       });
       const data = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
@@ -254,7 +255,7 @@ export function BookingWizard({ initialType }: { initialType: EventTypeKey | nul
       };
       if (res.ok && data.ok) {
         writeDraft(null);
-        setBookingNumber(data.number ?? null);
+        setClientName(contact.name.trim());
         setStatus("success");
         return;
       }
@@ -287,11 +288,12 @@ export function BookingWizard({ initialType }: { initialType: EventTypeKey | nul
             <Check aria-hidden className="size-8" strokeWidth={2} />
           </span>
           <h1 ref={headingRef} tabIndex={-1} className="t-h1 mt-8 outline-none">
-            Спасибо! Ваша заявка успешно отправлена
+            {clientName ? `Спасибо, ${clientName}!` : "Спасибо!"}
           </h1>
-          <p className="t-lead mt-5">
-            Мы свяжемся с вами для обсуждения деталей.
-            {bookingNumber ? ` Номер заявки: №${bookingNumber}.` : ""}
+          <p className="mt-4 text-xl md:text-2xl">Ваша заявка успешно отправлена.</p>
+          <p className="mt-6 rounded-2xl bg-paper-2 px-5 py-4 text-xl leading-snug md:px-6 md:py-5 md:text-2xl">
+            Мы свяжемся с вами в ближайшее время, чтобы обсудить детали и подтвердить бронирование. Пожалуйста, ожидайте
+            нашего звонка.
           </p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <Link href="/" className="btn btn-primary">

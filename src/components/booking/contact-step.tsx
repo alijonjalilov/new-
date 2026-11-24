@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
-import { LoaderCircle } from "lucide-react";
-import { contactSchema, type ContactInput } from "@/lib/booking/validation";
+import { LoaderCircle, Plus, X } from "lucide-react";
+import { contactSchema, MAX_EXTRA_PHONES, type ContactInput } from "@/lib/booking/validation";
 
 export const CONTACT_FORM_ID = "booking-contact-form";
 
@@ -27,28 +27,34 @@ export function ContactStep({
     register,
     handleSubmit,
     watch,
-    formState: { errors },
+    setValue,
+    formState: { errors, isSubmitted },
   } = useForm<z.input<typeof contactSchema>, unknown, ContactInput>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
       name: "",
       phone: "",
+      extraPhones: [],
       sameWhatsapp: true,
       whatsapp: "",
-      email: "",
       comment: "",
       website: "",
       ...defaultValues,
+      // Старые черновики могли не содержать доп. номеров
+      ...(Array.isArray(defaultValues?.extraPhones) ? {} : { extraPhones: [] }),
     },
     mode: "onTouched",
   });
 
   const sameWhatsapp = watch("sameWhatsapp");
+  const extraPhones = watch("extraPhones") ?? [];
 
   useEffect(() => {
     const sub = watch((values) => onDraftChange(values as Partial<ContactInput>));
     return () => sub.unsubscribe();
   }, [watch, onDraftChange]);
+
+  const setExtra = (next: string[]) => setValue("extraPhones", next, { shouldDirty: true, shouldValidate: isSubmitted });
 
   return (
     <form id={CONTACT_FORM_ID} noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -60,6 +66,7 @@ export function ContactStep({
           id="c-name"
           className="field"
           autoComplete="name"
+          aria-required
           aria-invalid={!!errors.name}
           aria-describedby={errors.name ? "c-name-err" : undefined}
           {...register("name")}
@@ -82,6 +89,7 @@ export function ContactStep({
           className="field"
           autoComplete="tel"
           placeholder="+992 XX XXX XX XX"
+          aria-required
           aria-invalid={!!errors.phone}
           aria-describedby={errors.phone ? "c-phone-err" : undefined}
           {...register("phone")}
@@ -91,12 +99,55 @@ export function ContactStep({
             {errors.phone.message}
           </p>
         )}
+
+        {extraPhones.map((value, i) => {
+          const err = errors.extraPhones?.[i]?.message;
+          return (
+            <div key={i} className="mt-3">
+              <label htmlFor={`c-phone-${i}`} className="sr-only">
+                Дополнительный номер {i + 1}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id={`c-phone-${i}`}
+                  type="tel"
+                  inputMode="tel"
+                  className="field"
+                  placeholder="Дополнительный номер"
+                  value={value}
+                  aria-invalid={!!err}
+                  onChange={(e) => setExtra(extraPhones.map((p, j) => (j === i ? e.target.value : p)))}
+                />
+                <button
+                  type="button"
+                  onClick={() => setExtra(extraPhones.filter((_, j) => j !== i))}
+                  className="inline-flex size-[3.25rem] shrink-0 items-center justify-center rounded-[0.875rem] border border-line text-muted hover:text-ink"
+                  aria-label={`Убрать дополнительный номер ${i + 1}`}
+                >
+                  <X aria-hidden className="size-4" />
+                </button>
+              </div>
+              {err && <p className="field-error">{err}</p>}
+            </div>
+          );
+        })}
+
+        {extraPhones.length < MAX_EXTRA_PHONES && (
+          <button
+            type="button"
+            onClick={() => setExtra([...extraPhones, ""])}
+            className="mt-3 inline-flex items-center gap-2 rounded-full py-1 text-[0.95rem] text-brass-deep hover:text-ink"
+          >
+            <Plus aria-hidden className="size-4" />
+            Добавить ещё один номер
+          </button>
+        )}
       </div>
 
       <div>
         <label className="flex cursor-pointer items-center gap-3 py-1">
           <input type="checkbox" className="size-5 accent-velvet" {...register("sameWhatsapp")} />
-          <span>WhatsApp на этом же номере</span>
+          <span>WhatsApp на основном номере</span>
         </label>
         {!sameWhatsapp && (
           <div className="mt-3">
@@ -119,27 +170,6 @@ export function ContactStep({
               </p>
             )}
           </div>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="c-email" className="field-label">
-          Электронная почта <span className="font-normal text-muted">(необязательно)</span>
-        </label>
-        <input
-          id="c-email"
-          type="email"
-          inputMode="email"
-          className="field"
-          autoComplete="email"
-          aria-invalid={!!errors.email}
-          aria-describedby={errors.email ? "c-email-err" : undefined}
-          {...register("email")}
-        />
-        {errors.email && (
-          <p id="c-email-err" className="field-error">
-            {errors.email.message}
-          </p>
         )}
       </div>
 
@@ -171,7 +201,7 @@ export function ContactStep({
       )}
 
       <p className="text-sm text-muted">
-        Нажимая «Отправить заявку», вы соглашаетесь, что мы свяжемся с вами по указанным контактам для обсуждения мероприятия.
+        Нажимая «Отправить заявку», вы соглашаетесь, что мы свяжемся с вами по указанным номерам для обсуждения мероприятия.
       </p>
 
       {submitting && (

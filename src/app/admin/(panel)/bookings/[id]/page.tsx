@@ -120,6 +120,14 @@ export default async function BookingDetailPage({ params }: Props) {
                   {b.phone}
                 </a>
               </li>
+              {b.extraPhones.map((p) => (
+                <li key={p}>
+                  <a href={`tel:${p.replace(/[^\d+]/g, "")}`} className="flex items-center gap-3 hover:text-brass-deep">
+                    <Phone aria-hidden className="size-4 text-muted" />
+                    {p} <span className="text-sm text-muted">(доп.)</span>
+                  </a>
+                </li>
+              ))}
               {b.whatsapp && (
                 <li>
                   <a href={waLink(b.whatsapp)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-brass-deep">

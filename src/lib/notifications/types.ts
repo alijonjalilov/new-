@@ -6,6 +6,7 @@ export interface BookingNotification {
   phone: string;
   whatsapp?: string | null;
   email?: string | null;
+  extraPhones?: string[];
   comment?: string | null;
   summary: { label: string; value: string }[];
   adminUrl?: string;

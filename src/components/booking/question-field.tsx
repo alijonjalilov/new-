@@ -1,8 +1,8 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { Check, Plus, X } from "lucide-react";
 import { todayISO } from "@/lib/booking/engine";
-import { otherKey, type Answers, type AnswerValue, type ChoiceQuestion, type Question } from "@/lib/booking/types";
+import { otherKey, type Answers, type AnswerValue, type ChoiceQuestion, type ListQuestion, type Question } from "@/lib/booking/types";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -16,6 +16,13 @@ interface Props {
 }
 
 const errorId = (id: string) => `q-${id}-error`;
+
+/**
+ * Карточки-варианты: при наведении мышью карточка чуть увеличивается,
+ * остальные слегка тускнеют; после выбора тускнеют невыбранные.
+ * Стили — классы .opt-group / .opt / .opt-dim в globals.css.
+ */
+export const OPTION_MOTION = "opt";
 
 export function QuestionField({ question: q, answers, error, onChange, onPicked, onEnter }: Props) {
   const value = answers[q.id];
@@ -70,22 +77,28 @@ export function QuestionField({ question: q, answers, error, onChange, onPicked,
       break;
     case "number":
       control = (
-        <input
-          id={`q-${q.id}`}
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          className="field max-w-48 text-lg"
-          value={typeof value === "string" ? value : ""}
-          placeholder={q.placeholder}
-          maxLength={3}
-          aria-invalid={!!error}
-          aria-describedby={describedBy}
-          aria-labelledby="question-title"
-          onChange={(e) => onChange(q.id, e.target.value.replace(/\D/g, ""))}
-          onKeyDown={onKeyDown}
-        />
+        <div className="flex items-center gap-3">
+          <input
+            id={`q-${q.id}`}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            className="field max-w-56 text-lg tabular-nums"
+            value={typeof value === "string" ? value : ""}
+            placeholder={q.placeholder}
+            maxLength={String(q.max).length}
+            aria-invalid={!!error}
+            aria-describedby={describedBy}
+            aria-labelledby="question-title"
+            onChange={(e) => onChange(q.id, e.target.value.replace(/\D/g, ""))}
+            onKeyDown={onKeyDown}
+          />
+          {q.suffix && <span className="text-lg text-muted">{q.suffix}</span>}
+        </div>
       );
+      break;
+    case "list":
+      control = <ListField q={q} answers={answers} onChange={onChange} describedBy={describedBy} />;
       break;
     case "date":
       control = (
@@ -170,7 +183,7 @@ function Choice({
         role={multi ? "group" : "radiogroup"}
         aria-labelledby="question-title"
         aria-describedby={describedBy}
-        className={cn("grid gap-2.5", many && "sm:grid-cols-2")}
+        className={cn("opt-group grid gap-2.5", many && "sm:grid-cols-2")}
       >
         {q.options.map((o) => {
           const isOn = selected.includes(o.value);
@@ -182,8 +195,11 @@ function Choice({
               aria-checked={isOn}
               onClick={() => toggle(o.value)}
               className={cn(
-                "flex min-h-14 items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-colors",
+                "flex min-h-14 items-center gap-3 rounded-2xl border px-4 py-3 text-left",
+                OPTION_MOTION,
                 isOn ? "border-velvet bg-velvet text-paper" : "border-line bg-white hover:border-ink/40",
+                // Выбран другой вариант — этот слегка тускнеет
+                selected.length > 0 && !isOn && !multi && "opt-dim",
               )}
             >
               <span
@@ -227,6 +243,64 @@ function Choice({
             }}
           />
         </div>
+      )}
+    </div>
+  );
+}
+
+function ListField({
+  q,
+  answers,
+  onChange,
+  describedBy,
+}: {
+  q: ListQuestion;
+  answers: Answers;
+  onChange: Props["onChange"];
+  describedBy?: string;
+}) {
+  const raw = answers[q.id];
+  const stored = Array.isArray(raw) ? raw : [];
+  const count = Math.min(Math.max(q.initialCount, stored.length), q.maxItems);
+  const items = Array.from({ length: count }, (_, i) => stored[i] ?? "");
+
+  return (
+    <div className="space-y-2.5" role="group" aria-labelledby="question-title" aria-describedby={describedBy}>
+      {items.map((v, i) => (
+        <div key={i} className="flex gap-2">
+          <label htmlFor={`q-${q.id}-${i}`} className="sr-only">
+            {q.summaryLabel} {i + 1}
+          </label>
+          <input
+            id={`q-${q.id}-${i}`}
+            type="text"
+            className="field"
+            value={v}
+            maxLength={100}
+            placeholder={`${q.placeholder ?? ""}${q.placeholder ? " " : ""}${i + 1}`}
+            onChange={(e) => onChange(q.id, items.map((x, j) => (j === i ? e.target.value : x)))}
+          />
+          {i >= q.initialCount && (
+            <button
+              type="button"
+              onClick={() => onChange(q.id, items.filter((_, j) => j !== i))}
+              className="inline-flex size-[3.25rem] shrink-0 items-center justify-center rounded-[0.875rem] border border-line text-muted hover:text-ink"
+              aria-label={`Убрать поле ${i + 1}`}
+            >
+              <X aria-hidden className="size-4" />
+            </button>
+          )}
+        </div>
+      ))}
+      {count < q.maxItems && (
+        <button
+          type="button"
+          onClick={() => onChange(q.id, [...items, ""])}
+          className="inline-flex items-center gap-2 rounded-full py-1 text-[0.95rem] text-brass-deep hover:text-ink"
+        >
+          <Plus aria-hidden className="size-4" />
+          {q.addLabel}
+        </button>
       )}
     </div>
   );

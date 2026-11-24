@@ -35,6 +35,7 @@ function hasOtherSelected(q: Question, answers: Answers): boolean {
 export function isEmptyAnswer(q: Question, answers: Answers): boolean {
   const v = answers[q.id];
   if (q.type === "multi") return asArray(v).length === 0;
+  if (q.type === "list") return asArray(v).every((x) => x.trim() === "");
   return asString(v).trim() === "";
 }
 
@@ -62,7 +63,12 @@ function isValidDate(value: string): boolean {
  */
 export function validateAnswer(q: Question, answers: Answers, opts: { minDate?: string } = {}): string | null {
   const empty = isEmptyAnswer(q, answers);
-  if (empty) return q.optional ? null : q.type === "single" || q.type === "multi" ? "Выберите вариант" : "Заполните это поле";
+  if (empty) {
+    if (q.optional) return null;
+    if (q.type === "single" || q.type === "multi") return "Выберите вариант";
+    if (q.type === "number" && q.suffix) return "Укажите сумму цифрами";
+    return "Заполните это поле";
+  }
 
   const v = answers[q.id];
 
@@ -84,6 +90,16 @@ export function validateAnswer(q: Question, answers: Answers, opts: { minDate?: 
       const max = q.maxLength ?? (q.type === "text" ? 200 : 1000);
       if (value.length < 2) return "Слишком коротко";
       if (value.length > max) return `Не более ${max} символов`;
+      break;
+    }
+    case "list": {
+      const values = asArray(v);
+      if (values.length > q.maxItems) return `Не более ${q.maxItems} полей`;
+      for (const x of values) {
+        const t = x.trim();
+        if (t && t.length < 2) return "Слишком коротко";
+        if (t.length > 100) return "Не более 100 символов в одном поле";
+      }
       break;
     }
     case "number": {
@@ -140,6 +156,18 @@ export function pruneAnswers(eventType: EventTypeKey, answers: Answers): Answers
   return current;
 }
 
+/** Убирает пустые поля в вопросах-списках и лишние пробелы. */
+export function normalizeAnswers(eventType: EventTypeKey, answers: Answers): Answers {
+  const out: Answers = { ...answers };
+  for (const q of getScenarioQuestions(eventType)) {
+    if (q.type !== "list" || !Array.isArray(out[q.id])) continue;
+    const items = (out[q.id] as string[]).map((x) => x.trim()).filter(Boolean);
+    if (items.length) out[q.id] = items;
+    else delete out[q.id];
+  }
+  return out;
+}
+
 /** Проверяет всю анкету. Возвращает карту ошибок по id вопроса. */
 export function validateAllAnswers(
   eventType: EventTypeKey,
@@ -187,6 +215,16 @@ export function formatAnswer(q: Question, answers: Answers): string {
         .join(", ");
     case "date":
       return formatDateRu(asString(v));
+    case "list":
+      return asArray(v)
+        .map((x) => x.trim())
+        .filter(Boolean)
+        .join(", ");
+    case "number": {
+      const n = Number(asString(v));
+      if (!q.suffix || !Number.isFinite(n)) return asString(v).trim();
+      return `${n.toLocaleString("ru-RU")} ${q.suffix}`;
+    }
     default:
       return asString(v).trim();
   }

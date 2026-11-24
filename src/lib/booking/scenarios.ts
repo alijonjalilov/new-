@@ -15,27 +15,8 @@ import type { Answers, ChoiceQuestion, EventTypeKey, Option, Question, Scenario 
 
 /* ───────────────────────── Общие наборы вариантов ───────────────────────── */
 
-/** Валюта и диапазоны бюджета — замените на актуальные для вас. */
+/** Валюта бюджета */
 export const BUDGET_CURRENCY = "сомони";
-
-const budgetOptions = (ranges: [string, string][]): Option[] => [
-  ...ranges.map(([value, label]) => ({ value, label })),
-  { value: "discuss", label: "Обсудить индивидуально" },
-];
-
-const PRIVATE_BUDGET = budgetOptions([
-  ["b1", `До 3 000 ${BUDGET_CURRENCY}`],
-  ["b2", `3 000 – 6 000 ${BUDGET_CURRENCY}`],
-  ["b3", `6 000 – 10 000 ${BUDGET_CURRENCY}`],
-  ["b4", `Более 10 000 ${BUDGET_CURRENCY}`],
-]);
-
-const BUSINESS_BUDGET = budgetOptions([
-  ["b1", `До 5 000 ${BUDGET_CURRENCY}`],
-  ["b2", `5 000 – 10 000 ${BUDGET_CURRENCY}`],
-  ["b3", `10 000 – 20 000 ${BUDGET_CURRENCY}`],
-  ["b4", `Более 20 000 ${BUDGET_CURRENCY}`],
-]);
 
 const YES_NO_MAYBE: Option[] = [
   { value: "yes", label: "Да" },
@@ -82,6 +63,9 @@ const VENUE_PRIVATE: Option[] = [
   { value: "other", label: "Другое" },
   { value: "undecided", label: "Пока не определились" },
 ];
+
+/** Для свадьбы — без варианта «Пока не определились» */
+const VENUE_WEDDING: Option[] = VENUE_PRIVATE.filter((o) => o.value !== "undecided");
 
 const MUSIC_TYPES: Option[] = [
   { value: "live", label: "Живые исполнители" },
@@ -194,12 +178,15 @@ const styleQ = (): Question => ({
   summaryLabel: "Стиль ведения",
 });
 
-const budgetQ = (options: Option[], title = "Ориентировочный бюджет на ведущего"): Question => ({
+const budgetQ = (title = "Ваш бюджет на ведущего"): Question => ({
   id: "budget",
-  type: "single",
+  type: "number",
   title,
-  description: "Это помогает предложить подходящий формат. Ни к чему не обязывает.",
-  options,
+  description: `Укажите сумму в ${BUDGET_CURRENCY}. Это помогает предложить подходящий формат и ни к чему не обязывает.`,
+  placeholder: "Например, 5000",
+  min: 1,
+  max: 10_000_000,
+  suffix: BUDGET_CURRENCY,
   summaryLabel: "Бюджет",
 });
 
@@ -293,41 +280,24 @@ const WEDDING: Scenario = {
     },
     dateQ("Дата свадьбы"),
     cityQ("В каком городе будет проходить свадьба?"),
-    venueTypeQ(),
+    venueTypeQ(VENUE_WEDDING),
     venueNameQ(),
     timeQ(),
-    guestsQ(GUESTS_PRIVATE),
     ...secondHostBlock(),
-    ...musicBlock(),
     {
-      id: "artists",
-      type: "textarea",
-      title: "Есть ли конкретные певцы или артисты, которых вы хотите пригласить?",
-      description: "Необязательно.",
-      placeholder: "Имена артистов или пожелания",
-      summaryLabel: "Пожелания по артистам",
-      optional: true,
-      maxLength: 600,
-    },
-    {
-      id: "extraProgram",
-      type: "multi",
-      title: "Нужна ли дополнительная программа?",
-      description: "Выберите всё, что интересно, или пропустите шаг.",
-      options: [
-        { value: "dance", label: "Танцевальная программа" },
-        { value: "interactive", label: "Интерактивы" },
-        { value: "contests", label: "Конкурсы" },
-        { value: "show", label: "Шоу-программа" },
-        { value: "other", label: "Другое" },
-      ],
-      otherValue: "other",
-      otherPlaceholder: "Что ещё хотите добавить?",
-      summaryLabel: "Доп. программа",
+      id: "singers",
+      type: "list",
+      title: "Кто будут певцы?",
+      description: "Если вы уже пригласили певцов или артистов, напишите их имена. Это нужно нам для информации — можно пропустить.",
+      placeholder: "Имя и фамилия",
+      addLabel: "Добавить певца",
+      initialCount: 3,
+      maxItems: 10,
+      summaryLabel: "Певцы",
       optional: true,
     },
     styleQ(),
-    budgetQ(PRIVATE_BUDGET),
+    budgetQ(),
   ],
 };
 
@@ -442,7 +412,7 @@ const CONFERENCE: Scenario = {
       summaryLabel: "Сценарий",
     },
     ...secondHostBlock("Нужен ли второй ведущий или модератор?"),
-    budgetQ(BUSINESS_BUDGET),
+    budgetQ(),
   ],
 };
 
@@ -501,7 +471,7 @@ const CORPORATE: Scenario = {
       summaryLabel: "Артисты и шоу",
     },
     styleQ(),
-    budgetQ(BUSINESS_BUDGET),
+    budgetQ(),
   ],
 };
 
@@ -564,7 +534,7 @@ const BIRTHDAY: Scenario = {
       options: YES_NO_MAYBE,
       summaryLabel: "Артисты",
     },
-    budgetQ(PRIVATE_BUDGET),
+    budgetQ(),
   ],
 };
 
@@ -656,7 +626,7 @@ const OFFICIAL: Scenario = {
       options: SCRIPT_READY,
       summaryLabel: "Сценарий",
     },
-    budgetQ(BUSINESS_BUDGET),
+    budgetQ(),
   ],
 };
 
@@ -689,7 +659,7 @@ const OTHER: Scenario = {
       optional: true,
       maxLength: 1000,
     },
-    budgetQ(PRIVATE_BUDGET),
+    budgetQ(),
   ],
 };
 

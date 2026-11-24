@@ -7,6 +7,7 @@ export function plainTextNotification(n: BookingNotification): string {
     "",
     `Клиент: ${n.clientName}`,
     `Телефон: ${n.phone}`,
+    n.extraPhones?.length ? `Доп. номера: ${n.extraPhones.join(", ")}` : null,
     n.whatsapp ? `WhatsApp: ${n.whatsapp}` : null,
     n.email ? `E-mail: ${n.email}` : null,
     "",

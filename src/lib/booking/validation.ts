@@ -1,37 +1,39 @@
 import { z } from "zod";
-import { pruneAnswers, validateAllAnswers } from "./engine";
+import { normalizeAnswers, pruneAnswers, validateAllAnswers } from "./engine";
 import { EVENT_TYPE_KEYS, type Answers } from "./types";
 
-/** Телефон: 7–15 цифр, допускаются +, пробелы, скобки и дефисы. */
-const phoneRe = /^\+?[\d\s()-]{7,22}$/;
+/** Телефон: от 9 до 15 цифр, допускаются +, пробелы, скобки и дефисы. */
+const phoneRe = /^\+?[\d\s()-]{9,24}$/;
 const digitsCount = (s: string) => s.replace(/\D/g, "").length;
+export const isValidPhone = (v: string) => phoneRe.test(v.trim()) && digitsCount(v) >= 9 && digitsCount(v) <= 15;
+const PHONE_HINT = "Номер должен содержать минимум 9 цифр, например 88 888 76 88";
 
-const phone = (requiredMsg: string) =>
-  z
-    .string()
-    .trim()
-    .min(1, requiredMsg)
-    .refine((v) => phoneRe.test(v) && digitsCount(v) >= 7 && digitsCount(v) <= 15, "Введите номер в формате +992 XX XXX XX XX");
+/** Сколько дополнительных номеров можно добавить */
+export const MAX_EXTRA_PHONES = 2;
 
 /** Контактная форма — общая для клиента (React Hook Form) и сервера. */
 export const contactSchema = z
   .object({
-    name: z.string().trim().min(2, "Введите имя и фамилию").max(100, "Слишком длинное имя"),
-    phone: phone("Введите номер телефона"),
+    name: z.string().trim().min(3, "Введите имя и фамилию (минимум 3 буквы)").max(100, "Слишком длинное имя"),
+    phone: z.string().trim().min(1, "Введите номер телефона").refine(isValidPhone, PHONE_HINT),
+    /** Дополнительные номера: пустые поля игнорируются */
+    extraPhones: z.array(z.string().trim().max(30)).max(MAX_EXTRA_PHONES),
     sameWhatsapp: z.boolean(),
     whatsapp: z.string().trim().max(30),
-    email: z.union([z.literal(""), z.email("Некорректный e-mail").max(160)]),
     comment: z.string().trim().max(2000, "Не более 2000 символов"),
     /** Скрытое поле-ловушка для ботов: люди его не видят и не заполняют */
     website: z.string().max(200).optional(),
   })
   .superRefine((data, ctx) => {
+    data.extraPhones.forEach((p, i) => {
+      if (p && !isValidPhone(p)) ctx.addIssue({ code: "custom", path: ["extraPhones", i], message: PHONE_HINT });
+    });
     if (data.sameWhatsapp) return;
     const w = data.whatsapp.trim();
     if (!w) {
       ctx.addIssue({ code: "custom", path: ["whatsapp"], message: "Укажите номер WhatsApp или отметьте, что он совпадает с телефоном" });
-    } else if (!phoneRe.test(w) || digitsCount(w) < 7 || digitsCount(w) > 15) {
-      ctx.addIssue({ code: "custom", path: ["whatsapp"], message: "Введите номер в формате +992 XX XXX XX XX" });
+    } else if (!isValidPhone(w)) {
+      ctx.addIssue({ code: "custom", path: ["whatsapp"], message: PHONE_HINT });
     }
   });
 
@@ -66,7 +68,7 @@ export function parseBookingSubmission(input: unknown): ParsedBooking {
     return { ok: false, fieldErrors, message: "Проверьте правильность заполнения формы" };
   }
 
-  const answers = pruneAnswers(parsed.data.eventType, parsed.data.answers);
+  const answers = normalizeAnswers(parsed.data.eventType, pruneAnswers(parsed.data.eventType, parsed.data.answers));
   const answerErrors = validateAllAnswers(parsed.data.eventType, answers);
   if (Object.keys(answerErrors).length > 0) {
     const fieldErrors = Object.fromEntries(Object.entries(answerErrors).map(([k, v]) => [`answers.${k}`, v]));
