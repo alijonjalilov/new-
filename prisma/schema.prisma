@@ -18,6 +18,7 @@ enum EventType {
   CORPORATE  // Корпоратив
   BIRTHDAY   // День рождения / юбилей
   OFFICIAL   // Презентация / официальное мероприятие
+  VOICEOVER  // Озвучка
   OTHER      // Другое
 }
 

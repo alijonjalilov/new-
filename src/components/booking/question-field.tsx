@@ -97,6 +97,28 @@ export function QuestionField({ question: q, answers, error, onChange, onPicked,
         </div>
       );
       break;
+    case "consent":
+      control = (
+        <label
+          htmlFor={`q-${q.id}`}
+          className={cn(
+            "flex cursor-pointer items-start gap-4 rounded-2xl border bg-white p-5 transition-colors",
+            value === "yes" ? "border-velvet" : error ? "border-danger" : "border-line hover:border-ink/40",
+          )}
+        >
+          <input
+            id={`q-${q.id}`}
+            type="checkbox"
+            className="mt-0.5 size-6 shrink-0 accent-velvet"
+            checked={value === "yes"}
+            aria-invalid={!!error}
+            aria-describedby={describedBy}
+            onChange={(e) => onChange(q.id, e.target.checked ? "yes" : "")}
+          />
+          <span className="text-lg leading-snug">{q.label}</span>
+        </label>
+      );
+      break;
     case "list":
       control = <ListField q={q} answers={answers} onChange={onChange} describedBy={describedBy} />;
       break;

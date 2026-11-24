@@ -36,6 +36,7 @@ export function isEmptyAnswer(q: Question, answers: Answers): boolean {
   const v = answers[q.id];
   if (q.type === "multi") return asArray(v).length === 0;
   if (q.type === "list") return asArray(v).every((x) => x.trim() === "");
+  if (q.type === "consent") return v !== "yes";
   return asString(v).trim() === "";
 }
 
@@ -67,6 +68,7 @@ export function validateAnswer(q: Question, answers: Answers, opts: { minDate?: 
     if (q.optional) return null;
     if (q.type === "single" || q.type === "multi") return "Выберите вариант";
     if (q.type === "number" && q.suffix) return "Укажите сумму цифрами";
+    if (q.type === "consent") return "Отметьте галочку, чтобы продолжить";
     return "Заполните это поле";
   }
 
@@ -106,6 +108,7 @@ export function validateAnswer(q: Question, answers: Answers, opts: { minDate?: 
       const value = asString(v).trim();
       if (!/^\d+$/.test(value)) return "Введите число";
       const n = Number(value);
+      if (q.suffix && n < q.min) return `Сумма должна быть не меньше ${q.min.toLocaleString("ru-RU")} ${q.suffix}`;
       if (n < q.min || n > q.max) return `Число от ${q.min} до ${q.max}`;
       break;
     }
@@ -215,6 +218,8 @@ export function formatAnswer(q: Question, answers: Answers): string {
         .join(", ");
     case "date":
       return formatDateRu(asString(v));
+    case "consent":
+      return "Да";
     case "list":
       return asArray(v)
         .map((x) => x.trim())

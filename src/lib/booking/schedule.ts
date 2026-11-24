@@ -15,16 +15,23 @@ export const DEFAULT_HOURS: Record<string, number> = {
   CORPORATE: 5,
   BIRTHDAY: 5,
   OFFICIAL: 4,
+  VOICEOVER: 0,
   OTHER: 5,
 };
 
 /** Ответ на вопрос «Продолжительность» → часы (null — весь день). */
 const DURATION_HOURS: Record<string, number | null> = {
-  hours: 4,
+  h2: 2,
+  h5: 5,
   half: 6,
   day: null,
+  // значения из прошлых версий анкеты
+  hours: 4,
   days: null,
 };
+
+/** Типы, которые не занимают время ведущего на площадке (дата — это срок сдачи) */
+const NON_BLOCKING = new Set(["VOICEOVER"]);
 
 export interface ScheduleItem {
   id: string;
@@ -78,10 +85,15 @@ export function formatWindow(w: TimeWindow): string {
  * Сама заявка и отклонённые в расчёт не берутся.
  */
 export function findConflicts(item: ScheduleItem, others: ScheduleItem[]): ScheduleItem[] {
-  if (!item.date || item.status === "REJECTED") return [];
+  if (!item.date || item.status === "REJECTED" || NON_BLOCKING.has(item.eventType)) return [];
   const w = eventWindow(item);
   return others.filter(
-    (o) => o.id !== item.id && o.status === "CONFIRMED" && o.date === item.date && windowsOverlap(w, eventWindow(o)),
+    (o) =>
+      o.id !== item.id &&
+      o.status === "CONFIRMED" &&
+      !NON_BLOCKING.has(o.eventType) &&
+      o.date === item.date &&
+      windowsOverlap(w, eventWindow(o)),
   );
 }
 

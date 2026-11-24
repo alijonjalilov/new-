@@ -50,10 +50,10 @@ const HOSTING_STYLE: Option[] = [
 ];
 
 const DURATION: Option[] = [
-  { value: "hours", label: "Несколько часов" },
+  { value: "h2", label: "До 2 часов" },
+  { value: "h5", label: "До 5 часов" },
   { value: "half", label: "Полдня" },
   { value: "day", label: "Один день" },
-  { value: "days", label: "Несколько дней" },
 ];
 
 const VENUE_PRIVATE: Option[] = [
@@ -84,7 +84,11 @@ const STATUS_LEVEL: Option[] = [
 const SCRIPT_READY: Option[] = [
   { value: "yes", label: "Да, сценарий готов" },
   { value: "draft", label: "Есть черновик" },
-  { value: "no", label: "Нет, нужна помощь" },
+  {
+    value: "no",
+    label: "Нет, нужна помощь с написанием сценария",
+    hint: "Написание сценария — дополнительная услуга, оплачивается отдельно",
+  },
 ];
 
 /* ───────────────────────── Хелперы условий ───────────────────────── */
@@ -184,7 +188,8 @@ const budgetQ = (title = "Ваш бюджет на ведущего"): Question 
   title,
   description: `Укажите сумму в ${BUDGET_CURRENCY}. Это помогает предложить подходящий формат и ни к чему не обязывает.`,
   placeholder: "Например, 5000",
-  min: 1,
+  // минимум три цифры
+  min: 100,
   max: 10_000_000,
   suffix: BUDGET_CURRENCY,
   summaryLabel: "Бюджет",
@@ -630,6 +635,143 @@ const OFFICIAL: Scenario = {
   ],
 };
 
+const VOICEOVER: Scenario = {
+  eventType: "VOICEOVER",
+  questions: [
+    {
+      id: "voicePurpose",
+      type: "single",
+      title: "Для чего нужна озвучка?",
+      options: [
+        { value: "ad", label: "Рекламный ролик" },
+        { value: "corporate", label: "Имиджевый или корпоративный ролик" },
+        { value: "documentary", label: "Документальный фильм или передача" },
+        { value: "promo", label: "Анонс, джингл, заставка" },
+        { value: "education", label: "Аудиогид или обучающий материал" },
+        { value: "ivr", label: "Голосовое меню, автоответчик" },
+        { value: "other", label: "Другое" },
+      ],
+      otherValue: "other",
+      otherPlaceholder: "Что нужно озвучить?",
+      summaryLabel: "Назначение",
+    },
+    {
+      id: "voiceMedia",
+      type: "multi",
+      title: "Где будет звучать озвучка?",
+      description: "Можно выбрать несколько вариантов.",
+      options: [
+        { value: "video", label: "Видео: ТВ, YouTube, соцсети" },
+        { value: "radio", label: "Радио" },
+        { value: "audio", label: "Подкаст или аудио" },
+        { value: "event", label: "На мероприятии, голос за кадром" },
+        { value: "other", label: "Другое" },
+      ],
+      otherValue: "other",
+      otherPlaceholder: "Где именно?",
+      summaryLabel: "Где звучит",
+    },
+    {
+      id: "brand",
+      type: "text",
+      title: "Для какого бренда или компании?",
+      description: "Необязательно.",
+      placeholder: "Название бренда или компании",
+      summaryLabel: "Бренд / компания",
+      optional: true,
+      maxLength: 120,
+      autoComplete: "organization",
+    },
+    {
+      id: "voiceLength",
+      type: "single",
+      title: "Какой объём озвучки?",
+      options: [
+        { value: "s30", label: "До 30 секунд" },
+        { value: "s60", label: "30–60 секунд" },
+        { value: "m3", label: "1–3 минуты" },
+        { value: "m10", label: "3–10 минут" },
+        { value: "more", label: "Больше 10 минут или несколько роликов" },
+      ],
+      summaryLabel: "Объём",
+    },
+    {
+      id: "voiceLanguage",
+      type: "single",
+      title: "На каком языке озвучка?",
+      options: [
+        { value: "tg", label: "Таджикский" },
+        { value: "ru", label: "Русский" },
+        { value: "tg-ru", label: "Таджикский и русский" },
+        { value: "other", label: "Другой" },
+      ],
+      otherValue: "other",
+      otherPlaceholder: "Какой язык?",
+      summaryLabel: "Язык",
+    },
+    {
+      id: "voiceTone",
+      type: "single",
+      title: "Какая подача нужна?",
+      options: [
+        { value: "official", label: "Официальная, строгая" },
+        { value: "warm", label: "Тёплая, доверительная" },
+        { value: "energetic", label: "Энергичная, рекламная" },
+        { value: "solemn", label: "Торжественная" },
+        { value: "advice", label: "Нужен совет диктора" },
+      ],
+      summaryLabel: "Подача",
+    },
+    { ...dateQ("К какой дате нужна готовая озвучка?"), summaryLabel: "Срок готовности" } as Question,
+    {
+      id: "studio",
+      type: "single",
+      title: "Нужна ли студия для записи?",
+      options: [
+        { value: "need", label: "Да, нужна студия" },
+        { value: "own", label: "Нет, есть своя студия" },
+        { value: "unknown", label: "Пока не знаем" },
+      ],
+      summaryLabel: "Студия",
+    },
+    {
+      id: "voiceScript",
+      type: "single",
+      title: "Есть ли готовый текст для озвучки?",
+      options: [
+        { value: "yes", label: "Да, текст готов" },
+        { value: "draft", label: "Есть черновик" },
+        {
+          value: "no",
+          label: "Нет, нужно написать текст",
+          hint: "Написание текста — дополнительная услуга, оплачивается отдельно",
+        },
+      ],
+      summaryLabel: "Текст",
+    },
+    {
+      id: "voiceEditConsent",
+      type: "consent",
+      title: "Согласие на редактирование текста",
+      description: "Чтобы текст звучал естественно, диктор может немного его поправить: ударения, длину фраз, порядок слов. Смысл и ключевые слова не меняются.",
+      label: "Я разрешаю диктору редактировать текст для озвучки",
+      summaryLabel: "Редактирование текста",
+      showIf: is("voiceScript", "yes", "draft"),
+    },
+    {
+      id: "voiceLink",
+      type: "text",
+      title: "Ссылка на текст или пример",
+      description: "Необязательно. Например, Google Документ, видео без звука или пример озвучки, которая вам нравится.",
+      placeholder: "https://…",
+      summaryLabel: "Ссылка",
+      optional: true,
+      maxLength: 300,
+    },
+    budgetQ("Ваш бюджет на озвучку"),
+  ],
+};
+
 const OTHER: Scenario = {
   eventType: "OTHER",
   questions: [
@@ -669,5 +811,6 @@ export const SCENARIOS: Record<EventTypeKey, Scenario> = {
   CORPORATE,
   BIRTHDAY,
   OFFICIAL,
+  VOICEOVER,
   OTHER,
 };

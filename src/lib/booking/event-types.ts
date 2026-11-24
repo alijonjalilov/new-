@@ -47,6 +47,13 @@ export const EVENT_TYPES: EventTypeMeta[] = [
     description: "Церемонии, открытия, протокол",
   },
   {
+    key: "VOICEOVER",
+    slug: "voiceover",
+    label: "Озвучка",
+    short: "Озвучка",
+    description: "Реклама, ролики, радио",
+  },
+  {
     key: "OTHER",
     slug: "other",
     label: "Другое",

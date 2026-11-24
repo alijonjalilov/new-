@@ -1,6 +1,6 @@
 "use client";
 
-import { Award, Briefcase, Cake, Heart, Mic, Sparkles, type LucideIcon } from "lucide-react";
+import { Award, Briefcase, Cake, Heart, Mic, Radio, Sparkles, type LucideIcon } from "lucide-react";
 import { EVENT_TYPES } from "@/lib/booking/event-types";
 import type { EventTypeKey } from "@/lib/booking/types";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ const ICONS: Record<EventTypeKey, LucideIcon> = {
   CORPORATE: Briefcase,
   BIRTHDAY: Cake,
   OFFICIAL: Award,
+  VOICEOVER: Radio,
   OTHER: Sparkles,
 };
 

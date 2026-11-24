@@ -10,6 +10,7 @@ export const EVENT_TYPE_KEYS = [
   "CORPORATE",
   "BIRTHDAY",
   "OFFICIAL",
+  "VOICEOVER",
   "OTHER",
 ] as const;
 
@@ -88,7 +89,21 @@ export interface ListQuestion extends BaseQuestion {
   maxItems: number;
 }
 
-export type Question = ChoiceQuestion | TextQuestion | DateQuestion | TimeQuestion | NumberQuestion | ListQuestion;
+/** Обязательная галочка-согласие (значение "yes") */
+export interface ConsentQuestion extends BaseQuestion {
+  type: "consent";
+  /** Текст рядом с галочкой */
+  label: string;
+}
+
+export type Question =
+  | ChoiceQuestion
+  | TextQuestion
+  | DateQuestion
+  | TimeQuestion
+  | NumberQuestion
+  | ListQuestion
+  | ConsentQuestion;
 
 export interface Scenario {
   eventType: EventTypeKey;
