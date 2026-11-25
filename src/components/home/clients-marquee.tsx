@@ -19,6 +19,8 @@ export function ClientsMarquee({ locale }: { locale: Locale }) {
 
   return (
     <section aria-labelledby="clients-title" className="overflow-hidden bg-paper-2 py-20 md:py-28">
+      {/* Стили блока лежат здесь же, чтобы он работал независимо от globals.css */}
+      <style>{MARQUEE_CSS}</style>
       <div className="container-site">
         <SectionHeading
           id="clients-title"
@@ -77,3 +79,98 @@ function ClientPill({ client, locale }: { client: Client; locale: Locale }) {
     </div>
   );
 }
+
+const MARQUEE_CSS = `
+/* ── Бегущие строки «С кем я работал» ───────────────────── */
+.marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  animation-duration: 70s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+/* Сдвиг на половину ленты + половину зазора: вторая копия встаёт ровно на место первой */
+.marquee-left {
+  animation-name: marquee-left;
+}
+.marquee-right {
+  animation-name: marquee-right;
+}
+@keyframes marquee-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-50% - 0.5rem)); }
+}
+@keyframes marquee-right {
+  from { transform: translateX(calc(-50% - 0.5rem)); }
+  to { transform: translateX(0); }
+}
+@media (hover: hover) {
+  .marquee:hover .marquee-track {
+    animation-play-state: paused;
+  }
+}
+@media (min-width: 768px) {
+  .marquee-track {
+    gap: 1.5rem;
+  }
+  @keyframes marquee-left {
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(-50% - 0.75rem)); }
+  }
+  @keyframes marquee-right {
+    from { transform: translateX(calc(-50% - 0.75rem)); }
+    to { transform: translateX(0); }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    overflow-x: auto;
+  }
+  .marquee-track {
+    animation: none !important;
+    padding-inline: 1.25rem;
+  }
+}
+
+.client-pill {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 2rem 0.5rem 0.5rem;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgb(30 26 43 / 0.04),
+    0 8px 24px -12px rgb(30 26 43 / 0.18);
+}
+.client-logo {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 1px solid var(--color-line);
+  background: #fff;
+}
+@media (min-width: 768px) {
+  .client-pill {
+    gap: 1.25rem;
+    padding-right: 2.5rem;
+  }
+  .client-logo {
+    width: 5rem;
+    height: 5rem;
+  }
+}
+`;
