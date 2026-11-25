@@ -5,16 +5,16 @@
  * Остальные языки — с префиксом (/en/about).
  *
  * Тексты переводятся словарями «русский текст → перевод»
- * (src/i18n/dictionaries/*.ts). Чтобы добавить таджикский:
- *  1. заполнить src/i18n/dictionaries/tg.ts;
- *  2. добавить "tg" в LOCALES и в DICTIONARIES (src/i18n/t.ts);
- *  3. скопировать папку src/app/en в src/app/tg и заменить в ней "en" на "tg".
+ * (src/i18n/dictionaries/*.ts): en.ts — английский, tg.ts — таджикский.
+ * Чтобы поправить перевод — измените строку в нужном словаре.
  */
-export const LOCALES = ["ru", "en"] as const;
+/** Порядок — как в переключателе языка */
+export const LOCALES = ["tg", "ru", "en"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "ru";
 
 export const LOCALE_LABELS: Record<Locale, { short: string; name: string; htmlLang: string; ogLocale: string }> = {
+  tg: { short: "ТҶ", name: "Тоҷикӣ", htmlLang: "tg", ogLocale: "tg_TJ" },
   ru: { short: "RU", name: "Русский", htmlLang: "ru", ogLocale: "ru_RU" },
   en: { short: "EN", name: "English", htmlLang: "en", ogLocale: "en_US" },
 };

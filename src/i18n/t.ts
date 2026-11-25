@@ -1,5 +1,6 @@
 import type { Locale } from "./config";
 import { en } from "./dictionaries/en";
+import { tg } from "./dictionaries/tg";
 
 /**
  * Перевод по русскому тексту.
@@ -7,7 +8,7 @@ import { en } from "./dictionaries/en";
  * Если перевода нет — показывается русский текст.
  * Переменные пишутся в фигурных скобках: t("en", "Спасибо, {name}!", { name })
  */
-const DICTIONARIES: Partial<Record<Locale, Record<string, string>>> = { en };
+const DICTIONARIES: Partial<Record<Locale, Record<string, string>>> = { en, tg };
 
 export function t(locale: Locale, ru: string, vars?: Record<string, string | number>): string {
   const dict = DICTIONARIES[locale];
