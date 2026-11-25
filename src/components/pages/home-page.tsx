@@ -11,6 +11,7 @@ import { testimonials } from "@/content/testimonials";
 import { contactLinks, site } from "@/content/site";
 import { siteUrl } from "@/lib/site";
 import { BookingBand } from "@/components/booking-band";
+import { ClientsMarquee } from "@/components/home/clients-marquee";
 import type { Metadata } from "next";
 import { lp, type Locale } from "@/i18n/config";
 import { t } from "@/i18n/t";
@@ -61,8 +62,11 @@ export function HomePage({ locale }: { locale: Locale }) {
         </div>
       </section>
 
+      {/* С кем я работал — две бегущие строки логотипов */}
+      <ClientsMarquee locale={locale} />
+
       {/* Мероприятия — список, а не сетка карточек */}
-      <section aria-labelledby="events-title" className="container-site pb-24 md:pb-32">
+      <section aria-labelledby="events-title" className="container-site py-24 md:py-32">
         <SectionHeading
           id="events-title"
           title={tr("Мероприятия")}

@@ -50,16 +50,16 @@ export function SiteHeader({ locale }: { locale: Locale }) {
       >
         {tr("Перейти к содержанию")}
       </a>
-      <div className="container-site flex h-16 items-center justify-between gap-6 md:h-20">
+      <div className="container-site flex h-16 items-center justify-between gap-3 md:h-20">
         <Link
           href={lp(locale, "/")}
-          className="font-display text-base tracking-tight md:text-lg"
+          className="shrink-0 whitespace-nowrap font-display text-base tracking-tight md:text-lg"
           aria-label={t(locale, "{name} — на главную", { name: tr(site.hostName) })}
         >
           {tr(site.hostName)}
         </Link>
 
-        <nav aria-label={tr("Основная навигация")} className="hidden items-center gap-8 lg:flex">
+        <nav aria-label={tr("Основная навигация")} className="hidden items-center gap-4 xl:flex">
           {nav.map((item) => {
             const href = lp(locale, item.href);
             const active = pathname === href || pathname.startsWith(`${href}/`);
@@ -69,7 +69,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "text-[0.95rem] transition-opacity hover:opacity-100",
+                  "whitespace-nowrap text-[0.9rem] transition-opacity hover:opacity-100",
                   active ? "opacity-100 underline decoration-brass underline-offset-8" : "opacity-75",
                 )}
               >
@@ -79,21 +79,21 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           })}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <LanguageSwitch locale={locale} className={overHero ? "text-paper" : "text-ink"} />
           <Link
             href={lp(locale, "/booking")}
-            className={cn("btn hidden min-h-11 px-5 sm:inline-flex", overHero ? "btn-brass" : "btn-primary")}
+            className={cn("btn hidden min-h-11 px-5 sm:inline-flex xl:px-4", overHero ? "btn-brass" : "btn-primary")}
           >
             {tr("Забронировать ведущего")}
           </Link>
           {/* Вход в админ-панель — неброская ссылка, как в подвале */}
-          <Link href="/admin" rel="nofollow" className="hidden text-sm opacity-50 transition-opacity hover:opacity-100 sm:inline">
+          <Link href="/admin" rel="nofollow" className="hidden whitespace-nowrap text-sm opacity-50 transition-opacity hover:opacity-100 sm:inline">
             {tr("Вход")}
           </Link>
           <button
             type="button"
-            className="-mr-2 inline-flex size-11 items-center justify-center rounded-full lg:hidden"
+            className="-mr-2 inline-flex size-11 items-center justify-center rounded-full xl:hidden"
             aria-expanded={open}
             aria-controls="mobile-menu"
             aria-label={open ? tr("Закрыть меню") : tr("Открыть меню")}
@@ -113,7 +113,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-x-0 top-16 bottom-0 overflow-y-auto bg-paper md:top-20 lg:hidden"
+            className="fixed inset-x-0 top-16 bottom-0 overflow-y-auto bg-paper md:top-20 xl:hidden"
           >
             <ul className="container-site flex flex-col py-6">
               {nav.map((item) => (

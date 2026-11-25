@@ -540,4 +540,9 @@ export const en: Record<string, string> = {
   "Укажите номер WhatsApp или отметьте, что он совпадает с телефоном": "Enter your WhatsApp number or check that it's the same as your phone number",
   "Проверьте правильность заполнения формы": "Please check the form",
   "Не все вопросы анкеты заполнены корректно": "Not all questions are answered correctly",
+  "С кем я работал": "Companies I’ve worked with",
+  "Компании, бренды и организации, с которыми мы уже сотрудничали.": "Companies, brands and organisations I have already worked with.",
+  "Сайт временно закрыт": "The site is temporarily closed",
+  "Идут технические работы, скоро всё снова заработает. Чтобы заказать ведущего, позвоните или напишите — я на связи.": "We’re doing some maintenance and will be back soon. To book a host, call or message me — I’m available.",
+  "Сайт временно закрыт. Позвоните или напишите нам напрямую.": "The site is temporarily closed. Please call or message us directly.",
 };
