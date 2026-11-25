@@ -23,6 +23,13 @@ enum EventType {
 }
 
 /// Статус обработки заявки
+/// Настройки сайта (ключ → значение). Сейчас: maintenance = "on" | "off".
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 enum BookingStatus {
   NEW         // Новая
   IN_PROGRESS // В обработке
