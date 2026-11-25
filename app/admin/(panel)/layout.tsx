@@ -1,0 +1,47 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getAdminSession } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { LogoutButton } from "@/components/admin/logout-button";
+import { site } from "@/content/site";
+
+export const dynamic = "force-dynamic";
+
+export default async function AdminPanelLayout({ children }: { children: React.ReactNode }) {
+  const session = await getAdminSession();
+  if (!session) redirect("/admin/login");
+  const trashCount = await prisma.booking.count({ where: { deletedAt: { not: null } } }).catch(() => 0);
+
+  return (
+    <>
+      <header className="border-b border-line bg-white">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 sm:gap-x-6">
+            {/* Название сайта — ссылка на главную страницу */}
+            <Link href="/" className="font-display text-base tracking-tight hover:text-brass-deep" title="На главную страницу сайта">
+              {site.hostName}
+            </Link>
+            <Link href="/admin" className="text-sm text-muted hover:text-ink">
+              Заявки
+            </Link>
+            <Link href="/admin/calendar" className="text-sm text-muted hover:text-ink">
+              Календарь
+            </Link>
+            <Link href="/admin/trash" className="text-sm text-muted hover:text-ink">
+              Корзина{trashCount > 0 ? ` (${trashCount})` : ""}
+            </Link>
+          </div>
+          <div className="flex items-center gap-3 text-sm">
+            <Link href="/" className="hidden text-muted hover:text-ink sm:inline">
+              На сайт
+            </Link>
+            <LogoutButton />
+          </div>
+        </div>
+      </header>
+      <main id="main" className="mx-auto max-w-7xl px-5 py-8 md:py-10">
+        {children}
+      </main>
+    </>
+  );
+}
