@@ -4,13 +4,18 @@ import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { LogoutButton } from "@/components/admin/logout-button";
 import { site } from "@/content/site";
+import { SiteSwitch } from "@/components/admin/site-switch";
+import { isSiteClosed } from "@/lib/site-settings";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPanelLayout({ children }: { children: React.ReactNode }) {
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
-  const trashCount = await prisma.booking.count({ where: { deletedAt: { not: null } } }).catch(() => 0);
+  const [trashCount, closed] = await Promise.all([
+    prisma.booking.count({ where: { deletedAt: { not: null } } }).catch(() => 0),
+    isSiteClosed(),
+  ]);
 
   return (
     <>
@@ -32,6 +37,7 @@ export default async function AdminPanelLayout({ children }: { children: React.R
             </Link>
           </div>
           <div className="flex items-center gap-3 text-sm">
+            <SiteSwitch closed={closed} />
             <Link href="/" className="hidden text-muted hover:text-ink sm:inline">
               На сайт
             </Link>
@@ -39,6 +45,12 @@ export default async function AdminPanelLayout({ children }: { children: React.R
           </div>
         </div>
       </header>
+      {closed && (
+        <p className="bg-danger px-5 py-2.5 text-center text-sm text-white">
+          Сайт сейчас закрыт: посетители видят страницу «технические работы», новые заявки не принимаются. Вы, как
+          администратор, видите сайт как обычно.
+        </p>
+      )}
       <main id="main" className="mx-auto max-w-7xl px-5 py-8 md:py-10">
         {children}
       </main>

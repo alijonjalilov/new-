@@ -9,6 +9,7 @@ import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { siteUrl } from "@/lib/site";
 import { t } from "@/i18n/t";
 import { isLocale, type Locale } from "@/i18n/config";
+import { isSiteClosed } from "@/lib/site-settings";
 import { conflictMessage, findConflicts } from "@/lib/booking/schedule";
 import { loadConfirmedOn } from "@/lib/booking/schedule-db";
 
@@ -19,7 +20,15 @@ const nullIfEmpty = (s: string | undefined | null) => (s && s.trim() ? s.trim() 
 
 export async function POST(request: Request) {
   // Язык ответа: из адреса страницы-источника (для сообщений об ошибках)
-  const refLocale: Locale = request.headers.get("x-site-locale") === "en" ? "en" : "ru";
+  const headerLocale = request.headers.get("x-site-locale");
+  const refLocale: Locale = isLocale(headerLocale) ? headerLocale : "ru";
+
+  if (await isSiteClosed()) {
+    return NextResponse.json(
+      { ok: false, message: t(refLocale, "Сайт временно закрыт. Позвоните или напишите нам напрямую.") },
+      { status: 503 },
+    );
+  }
   const limit = rateLimit(`booking:${clientIp(request.headers)}`, 5, 10 * 60 * 1000);
   if (!limit.ok) {
     return NextResponse.json(

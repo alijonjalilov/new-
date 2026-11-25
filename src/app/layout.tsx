@@ -1,18 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Golos_Text, Unbounded } from "next/font/google";
+import { Geologica, Golos_Text } from "next/font/google";
 import { site } from "@/content/site";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
-const display = Unbounded({
-  subsets: ["latin", "cyrillic"],
+/** Шрифт заголовков. Geologica поддерживает все таджикские буквы: Ғ Ӣ Қ Ӯ Ҳ Ҷ */
+const display = Geologica({
+  subsets: ["latin", "cyrillic", "cyrillic-ext"],
   weight: ["300", "400", "500"],
-  variable: "--font-unbounded",
+  variable: "--font-display-face",
   display: "swap",
 });
 
 const sans = Golos_Text({
-  subsets: ["latin", "cyrillic"],
+  subsets: ["latin", "cyrillic", "cyrillic-ext"],
   weight: ["400", "500", "600"],
   variable: "--font-golos",
   display: "swap",

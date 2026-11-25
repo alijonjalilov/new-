@@ -45,7 +45,7 @@ export default async function BookingDetailPage({ params }: Props) {
     { label: "Площадка / адрес", value: b.address },
     { label: "Гостей", value: b.guests },
     { label: "Язык второго ведущего", value: b.language },
-    { label: "Язык сайта", value: (b.answers as { locale?: string } | null)?.locale === "en" ? "Английский" : "Русский" },
+    { label: "Язык сайта", value: ({ en: "Английский", tg: "Таджикский" } as Record<string, string>)[(b.answers as { locale?: string } | null)?.locale ?? ""] ?? "Русский" },
   ];
 
   return (
