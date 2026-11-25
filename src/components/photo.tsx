@@ -1,5 +1,7 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { t } from "@/i18n/t";
+import type { Locale } from "@/i18n/config";
 
 interface PhotoProps {
   src?: string | null;
@@ -11,6 +13,7 @@ interface PhotoProps {
   sizes?: string;
   /** Какая часть фото важнее при обрезке, например "top" (лицо) */
   position?: string;
+  locale?: Locale;
 }
 
 /**
@@ -18,7 +21,7 @@ interface PhotoProps {
  * показывается «бархатная» заглушка с подсказкой, что сюда загрузить.
  * Родитель задаёт размеры/пропорции (например, aspect-[4/5]).
  */
-export function Photo({ src, alt, placeholder, className, priority, sizes = "100vw", position = "center" }: PhotoProps) {
+export function Photo({ src, alt, placeholder, className, priority, sizes = "100vw", position = "center", locale = "ru" }: PhotoProps) {
   if (src) {
     return (
       <div className={cn("relative overflow-hidden bg-velvet", className)}>
@@ -29,7 +32,7 @@ export function Photo({ src, alt, placeholder, className, priority, sizes = "100
   return (
     <div
       role="img"
-      aria-label={`${alt} (фото будет добавлено)`}
+      aria-label={t(locale, "{alt} (фото будет добавлено)", { alt })}
       className={cn("velvet-texture relative flex items-end overflow-hidden text-paper/60", className)}
     >
       <svg aria-hidden viewBox="0 0 100 100" className="absolute top-1/2 left-1/2 w-1/4 max-w-24 -translate-x-1/2 -translate-y-1/2 opacity-20">

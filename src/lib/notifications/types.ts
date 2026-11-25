@@ -12,6 +12,8 @@ export interface BookingNotification {
   adminUrl?: string;
   /** Предупреждение: дата и время пересекаются с подтверждённой заявкой */
   warning?: string | null;
+  /** Язык сайта, с которого пришла заявка */
+  siteLocale?: string;
 }
 
 export interface NotificationChannel {

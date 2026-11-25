@@ -5,7 +5,18 @@ import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { BOOKING_STATUSES, type BookingStatusKey } from "@/lib/booking/event-types";
 
-export function BookingActions({ id, status, adminNote }: { id: string; status: BookingStatusKey; adminNote: string }) {
+export function BookingActions({
+  id,
+  status,
+  adminNote,
+  deleted = false,
+}: {
+  id: string;
+  status: BookingStatusKey;
+  adminNote: string;
+  /** Заявка в корзине */
+  deleted?: boolean;
+}) {
   const router = useRouter();
   const [currentStatus, setCurrentStatus] = useState<BookingStatusKey>(status);
   const [note, setNote] = useState(adminNote);
@@ -37,10 +48,11 @@ export function BookingActions({ id, status, adminNote }: { id: string; status: 
   async function remove() {
     setDeleting(true);
     try {
-      const res = await fetch(`/api/admin/bookings/${id}`, { method: "DELETE" });
+      // Из обычного списка — в корзину; из корзины — навсегда
+      const res = await fetch(`/api/admin/bookings/${id}${deleted ? "?permanent=1" : ""}`, { method: "DELETE" });
       if (res.status === 401) return router.replace("/admin/login");
       if (!res.ok) throw new Error();
-      router.replace("/admin");
+      router.replace(deleted ? "/admin/trash" : "/admin");
       router.refresh();
     } catch {
       setDeleting(false);
@@ -49,8 +61,35 @@ export function BookingActions({ id, status, adminNote }: { id: string; status: 
     }
   }
 
+  async function restore() {
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/bookings/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "restore", ids: [id] }),
+      });
+      if (res.status === 401) return router.replace("/admin/login");
+      if (!res.ok) throw new Error();
+      router.refresh();
+    } catch {
+      setMessage({ kind: "error", text: "Не удалось восстановить заявку." });
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <>
+      {deleted && (
+        <section className="rounded-2xl border border-brass/40 bg-brass/10 p-6">
+          <p className="font-medium">Заявка в корзине</p>
+          <p className="mt-1 text-sm text-muted">Она не видна в списке заявок и в календаре.</p>
+          <button type="button" onClick={restore} disabled={deleting} className="btn btn-primary mt-4 min-h-11">
+            Восстановить
+          </button>
+        </section>
+      )}
       <section className="rounded-2xl bg-white p-6">
         <h2 className="mb-4 font-medium">Обработка</h2>
         <label htmlFor="status" className="field-label">
@@ -96,19 +135,21 @@ export function BookingActions({ id, status, adminNote }: { id: string; status: 
         {!confirmDelete ? (
           <button type="button" onClick={() => setConfirmDelete(true)} className="inline-flex items-center gap-2 text-danger hover:underline">
             <Trash2 aria-hidden className="size-4" />
-            Удалить заявку
+            {deleted ? "Удалить навсегда" : "Переместить в корзину"}
           </button>
         ) : (
           <div role="alertdialog" aria-labelledby="del-title" aria-describedby="del-desc">
             <p id="del-title" className="font-medium">
-              Удалить заявку?
+              {deleted ? "Удалить заявку навсегда?" : "Переместить заявку в корзину?"}
             </p>
             <p id="del-desc" className="mt-1 text-sm text-muted">
-              Заявка и все ответы будут удалены без возможности восстановления.
+              {deleted
+                ? "Заявка и все ответы будут удалены без возможности восстановления."
+                : "Её можно будет восстановить из раздела «Корзина»."}
             </p>
             <div className="mt-4 flex gap-2">
               <button type="button" onClick={remove} disabled={deleting} className="btn min-h-11 bg-danger text-white hover:bg-danger/90">
-                {deleting ? "Удаляем…" : "Да, удалить"}
+                {deleting ? "Выполняем…" : deleted ? "Да, удалить" : "Да, в корзину"}
               </button>
               <button type="button" onClick={() => setConfirmDelete(false)} autoFocus className="btn btn-outline min-h-11">
                 Отмена

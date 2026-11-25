@@ -4,7 +4,7 @@ import { BookingStatus, EventType } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { BOOKING_STATUSES, EVENT_TYPES, EVENT_TYPE_BY_KEY } from "@/lib/booking/event-types";
 import { formatDateRu } from "@/lib/booking/engine";
-import { BusyBadge, StatusBadge } from "@/components/admin/status-badge";
+import { BookingList } from "@/components/admin/booking-list";
 import { conflictMessage, findConflicts } from "@/lib/booking/schedule";
 import { loadConfirmedOn, scheduleSelect, toScheduleItem } from "@/lib/booking/schedule-db";
 import { cn } from "@/lib/utils";
@@ -40,7 +40,8 @@ function parseFilters(sp: SP) {
 type Filters = ReturnType<typeof parseFilters>;
 
 function buildWhere(f: Filters): Prisma.BookingWhereInput {
-  const where: Prisma.BookingWhereInput = {};
+  // Заявки из корзины в списке и статистике не показываем
+  const where: Prisma.BookingWhereInput = { deletedAt: null };
   if (f.type) where.eventType = f.type;
   if (f.status) where.status = f.status;
 
@@ -98,14 +99,15 @@ type DashboardData = {
 
 async function loadDashboard(f: Filters, where: Prisma.BookingWhereInput): Promise<DashboardData | null> {
   try {
-    const countType = (eventType: EventType) => prisma.booking.count({ where: { eventType } });
+    const live = { deletedAt: null };
+    const countType = (eventType: EventType) => prisma.booking.count({ where: { ...live, eventType } });
     const [total, weddings, conferences, corporates, newCount, confirmedCount, filteredCount, rows] = await Promise.all([
-      prisma.booking.count(),
+      prisma.booking.count({ where: live }),
       countType("WEDDING"),
       countType("CONFERENCE"),
       countType("CORPORATE"),
-      prisma.booking.count({ where: { status: "NEW" } }),
-      prisma.booking.count({ where: { status: "CONFIRMED" } }),
+      prisma.booking.count({ where: { ...live, status: "NEW" } }),
+      prisma.booking.count({ where: { ...live, status: "CONFIRMED" } }),
       prisma.booking.count({ where }),
       prisma.booking.findMany({
         where,
@@ -250,79 +252,21 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
         </div>
       ) : (
         <>
-          {/* Таблица — на больших экранах */}
-          <div className="hidden overflow-hidden rounded-2xl bg-white lg:block">
-            <table className="w-full text-left text-[0.95rem]">
-              <thead className="border-b border-line text-sm text-muted">
-                <tr>
-                  <th className="px-5 py-3 font-normal">№</th>
-                  <th className="px-5 py-3 font-normal">Клиент</th>
-                  <th className="px-5 py-3 font-normal">Мероприятие</th>
-                  <th className="px-5 py-3 font-normal">Дата</th>
-                  <th className="px-5 py-3 font-normal">Город</th>
-                  <th className="px-5 py-3 font-normal">Гостей</th>
-                  <th className="px-5 py-3 font-normal">Статус</th>
-                  <th className="px-5 py-3 font-normal">Получена</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.rows.map((r) => (
-                  <tr key={r.id} className="border-b border-line last:border-0 hover:bg-paper">
-                    <td className="px-5 py-4 text-muted tabular-nums">
-                      <Link href={`/admin/bookings/${r.id}`} className="hover:text-ink">
-                        {r.number}
-                      </Link>
-                    </td>
-                    <td className="px-5 py-4">
-                      <Link href={`/admin/bookings/${r.id}`} className="font-medium hover:underline">
-                        {r.clientName}
-                      </Link>
-                      <span className="block text-sm text-muted">{r.phone}</span>
-                    </td>
-                    <td className="px-5 py-4">{EVENT_TYPE_BY_KEY[r.eventType].label}</td>
-                    <td className="px-5 py-4 whitespace-nowrap">{r.eventDate ? formatDateRu(r.eventDate.toISOString().slice(0, 10)) : "—"}</td>
-                    <td className="px-5 py-4">{r.city ?? "—"}</td>
-                    <td className="px-5 py-4">{r.guests ?? "—"}</td>
-                    <td className="px-5 py-4">
-                      <div className="flex flex-col items-start gap-1">
-                        <StatusBadge status={r.status} />
-                        {data.busy[r.id] && <BusyBadge title={data.busy[r.id]} />}
-                      </div>
-                    </td>
-                    <td className="px-5 py-4 text-sm whitespace-nowrap text-muted">{r.createdAt.toLocaleDateString("ru-RU")}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Карточки — на телефонах и планшетах */}
-          <ul className="space-y-3 lg:hidden">
-            {data.rows.map((r) => (
-              <li key={r.id}>
-                <Link href={`/admin/bookings/${r.id}`} className="block rounded-2xl bg-white p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-medium">{r.clientName}</p>
-                      <p className="text-sm text-muted">
-                        №{r.number}, {EVENT_TYPE_BY_KEY[r.eventType].label}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <StatusBadge status={r.status} />
-                      {data.busy[r.id] && <BusyBadge />}
-                    </div>
-                  </div>
-                  {data.busy[r.id] && <p className="mt-3 text-sm text-danger">{data.busy[r.id]}</p>}
-                  <p className="mt-3 text-sm text-muted">
-                    {[r.eventDate ? formatDateRu(r.eventDate.toISOString().slice(0, 10)) : null, r.city, r.guests ? `${r.guests} гостей` : null]
-                      .filter(Boolean)
-                      .join(", ") || "Детали в заявке"}
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <BookingList
+            rows={data.rows.map((r) => ({
+              id: r.id,
+              number: r.number,
+              eventType: r.eventType,
+              status: r.status,
+              clientName: r.clientName,
+              phone: r.phone,
+              city: r.city,
+              guests: r.guests,
+              eventDate: r.eventDate ? formatDateRu(r.eventDate.toISOString().slice(0, 10)) : null,
+              createdAt: r.createdAt.toLocaleDateString("ru-RU"),
+              busy: data.busy[r.id] ?? null,
+            }))}
+          />
 
           {pages > 1 && (
             <nav aria-label="Страницы" className="flex items-center justify-center gap-2">

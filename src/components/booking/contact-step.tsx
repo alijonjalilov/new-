@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
 import { LoaderCircle, Plus, X } from "lucide-react";
-import { contactSchema, MAX_EXTRA_PHONES, type ContactInput } from "@/lib/booking/validation";
+import { contactSchema, makeContactSchema, MAX_EXTRA_PHONES, type ContactInput } from "@/lib/booking/validation";
+import { t } from "@/i18n/t";
+import type { Locale } from "@/i18n/config";
 
 export const CONTACT_FORM_ID = "booking-contact-form";
 
@@ -15,7 +17,9 @@ export function ContactStep({
   serverError,
   onSubmit,
   onDraftChange,
+  locale,
 }: {
+  locale: Locale;
   defaultValues?: Partial<ContactInput>;
   submitting: boolean;
   serverError: string | null;
@@ -23,6 +27,8 @@ export function ContactStep({
   /** Сохраняет введённое, чтобы данные не терялись при переходе назад */
   onDraftChange: (data: Partial<ContactInput>) => void;
 }) {
+  const tr = (s: string, v?: Record<string, string | number>) => t(locale, s, v);
+  const schema = useMemo(() => makeContactSchema(locale), [locale]);
   const {
     register,
     handleSubmit,
@@ -30,7 +36,7 @@ export function ContactStep({
     setValue,
     formState: { errors, isSubmitted },
   } = useForm<z.input<typeof contactSchema>, unknown, ContactInput>({
-    resolver: zodResolver(contactSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       name: "",
       phone: "",
@@ -60,7 +66,7 @@ export function ContactStep({
     <form id={CONTACT_FORM_ID} noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <div>
         <label htmlFor="c-name" className="field-label">
-          Имя и фамилия
+          {tr("Имя и фамилия")}
         </label>
         <input
           id="c-name"
@@ -80,7 +86,7 @@ export function ContactStep({
 
       <div>
         <label htmlFor="c-phone" className="field-label">
-          Номер телефона
+          {tr("Номер телефона")}
         </label>
         <input
           id="c-phone"
@@ -105,7 +111,7 @@ export function ContactStep({
           return (
             <div key={i} className="mt-3">
               <label htmlFor={`c-phone-${i}`} className="sr-only">
-                Дополнительный номер {i + 1}
+                {tr("Дополнительный номер {n}", { n: i + 1 })}
               </label>
               <div className="flex gap-2">
                 <input
@@ -113,7 +119,7 @@ export function ContactStep({
                   type="tel"
                   inputMode="tel"
                   className="field"
-                  placeholder="Дополнительный номер"
+                  placeholder={tr("Дополнительный номер")}
                   value={value}
                   aria-invalid={!!err}
                   onChange={(e) => setExtra(extraPhones.map((p, j) => (j === i ? e.target.value : p)))}
@@ -122,7 +128,7 @@ export function ContactStep({
                   type="button"
                   onClick={() => setExtra(extraPhones.filter((_, j) => j !== i))}
                   className="inline-flex size-[3.25rem] shrink-0 items-center justify-center rounded-[0.875rem] border border-line text-muted hover:text-ink"
-                  aria-label={`Убрать дополнительный номер ${i + 1}`}
+                  aria-label={tr("Убрать дополнительный номер {n}", { n: i + 1 })}
                 >
                   <X aria-hidden className="size-4" />
                 </button>
@@ -139,7 +145,7 @@ export function ContactStep({
             className="mt-3 inline-flex items-center gap-2 rounded-full py-1 text-[0.95rem] text-brass-deep hover:text-ink"
           >
             <Plus aria-hidden className="size-4" />
-            Добавить ещё один номер
+            {tr("Добавить ещё один номер")}
           </button>
         )}
       </div>
@@ -147,12 +153,12 @@ export function ContactStep({
       <div>
         <label className="flex cursor-pointer items-center gap-3 py-1">
           <input type="checkbox" className="size-5 accent-velvet" {...register("sameWhatsapp")} />
-          <span>WhatsApp на основном номере</span>
+          <span>{tr("WhatsApp на основном номере")}</span>
         </label>
         {!sameWhatsapp && (
           <div className="mt-3">
             <label htmlFor="c-wa" className="field-label">
-              Номер WhatsApp
+              {tr("Номер WhatsApp")}
             </label>
             <input
               id="c-wa"
@@ -175,12 +181,12 @@ export function ContactStep({
 
       <div>
         <label htmlFor="c-comment" className="field-label">
-          Дополнительный комментарий <span className="font-normal text-muted">(необязательно)</span>
+          {tr("Дополнительный комментарий")} <span className="font-normal text-muted">({tr("необязательно")})</span>
         </label>
         <textarea
           id="c-comment"
           className="field min-h-28 resize-y"
-          placeholder="Всё, что важно знать заранее"
+          placeholder={tr("Всё, что важно знать заранее")}
           maxLength={2000}
           aria-invalid={!!errors.comment}
           {...register("comment")}
@@ -201,12 +207,12 @@ export function ContactStep({
       )}
 
       <p className="text-sm text-muted">
-        Нажимая «Отправить заявку», вы соглашаетесь, что мы свяжемся с вами по указанным номерам для обсуждения мероприятия.
+        {tr("Нажимая «Отправить заявку», вы соглашаетесь, что мы свяжемся с вами по указанным номерам для обсуждения мероприятия.")}
       </p>
 
       {submitting && (
         <p className="flex items-center gap-2 text-muted" aria-live="polite">
-          <LoaderCircle aria-hidden className="size-4 animate-spin" /> Отправляем заявку…
+          <LoaderCircle aria-hidden className="size-4 animate-spin" /> {tr("Отправляем заявку…")}
         </p>
       )}
     </form>

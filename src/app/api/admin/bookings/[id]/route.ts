@@ -42,11 +42,18 @@ export async function PATCH(request: Request, { params }: Ctx) {
   }
 }
 
-export async function DELETE(_request: Request, { params }: Ctx) {
+/** Перемещает заявку в корзину. С ?permanent=1 — удаляет навсегда (только из корзины). */
+export async function DELETE(request: Request, { params }: Ctx) {
   if (!(await getAdminSession())) return unauthorized();
   const { id } = await params;
+  const permanent = new URL(request.url).searchParams.get("permanent") === "1";
   try {
-    await prisma.booking.delete({ where: { id } });
+    if (permanent) {
+      const { count } = await prisma.booking.deleteMany({ where: { id, deletedAt: { not: null } } });
+      if (count === 0) return NextResponse.json({ ok: false, message: "Заявка не в корзине" }, { status: 409 });
+    } else {
+      await prisma.booking.update({ where: { id }, data: { deletedAt: new Date() } });
+    }
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ ok: false, message: "Заявка не найдена" }, { status: 404 });

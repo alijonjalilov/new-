@@ -7,6 +7,8 @@ import { EVENT_TYPE_BY_KEY } from "@/lib/booking/event-types";
 import { notifyNewBooking } from "@/lib/notifications";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { siteUrl } from "@/lib/site";
+import { t } from "@/i18n/t";
+import { isLocale, type Locale } from "@/i18n/config";
 import { conflictMessage, findConflicts } from "@/lib/booking/schedule";
 import { loadConfirmedOn } from "@/lib/booking/schedule-db";
 
@@ -16,10 +18,12 @@ export const dynamic = "force-dynamic";
 const nullIfEmpty = (s: string | undefined | null) => (s && s.trim() ? s.trim() : null);
 
 export async function POST(request: Request) {
+  // Язык ответа: из адреса страницы-источника (для сообщений об ошибках)
+  const refLocale: Locale = request.headers.get("x-site-locale") === "en" ? "en" : "ru";
   const limit = rateLimit(`booking:${clientIp(request.headers)}`, 5, 10 * 60 * 1000);
   if (!limit.ok) {
     return NextResponse.json(
-      { ok: false, message: "Слишком много заявок подряд. Попробуйте позже или свяжитесь с нами напрямую." },
+      { ok: false, message: t(refLocale, "Слишком много заявок подряд. Попробуйте позже или свяжитесь с нами напрямую.") },
       { status: 429, headers: { "Retry-After": String(limit.retryAfter) } },
     );
   }
@@ -28,7 +32,7 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ ok: false, message: "Некорректный запрос" }, { status: 400 });
+    return NextResponse.json({ ok: false, message: t(refLocale, "Некорректный запрос") }, { status: 400 });
   }
 
   // Ловушка для ботов: скрытое поле заполнено — делаем вид, что всё хорошо, но ничего не сохраняем
@@ -43,6 +47,7 @@ export async function POST(request: Request) {
   }
 
   const { eventType, answers, contact } = parsed.data;
+  const siteLocale: Locale = isLocale(parsed.data.locale) ? parsed.data.locale : "ru";
   const core = extractCoreFields(eventType, answers);
   const summary = buildSummary(eventType, answers);
   const whatsapp = contact.sameWhatsapp ? contact.phone : contact.whatsapp;
@@ -60,7 +65,7 @@ export async function POST(request: Request) {
         language: core.language ?? null,
         // Сохраняем и «сырые» ответы, и читаемое резюме — так заявка
         // останется понятной, даже если вопросы анкеты потом изменятся.
-        answers: { raw: answers, summary } as unknown as Prisma.InputJsonValue,
+        answers: { raw: answers, summary, locale: siteLocale } as unknown as Prisma.InputJsonValue,
         clientName: contact.name,
         phone: contact.phone,
         whatsapp: nullIfEmpty(whatsapp),
@@ -97,6 +102,7 @@ export async function POST(request: Request) {
       summary,
       adminUrl: `${siteUrl()}/admin/bookings/${booking.id}`,
       warning,
+      siteLocale,
     }).catch((e) => console.error("[notifications]", e));
 
     return NextResponse.json({ ok: true, number: booking.number }, { status: 201 });
@@ -105,7 +111,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         ok: false,
-        message: "Не удалось сохранить заявку. Пожалуйста, попробуйте ещё раз или свяжитесь с нами по телефону.",
+        message: t(refLocale, "Не удалось сохранить заявку. Пожалуйста, попробуйте ещё раз или свяжитесь с нами по телефону."),
       },
       { status: 500 },
     );

@@ -7,6 +7,9 @@ export default function NotFound() {
         <p className="font-display text-brass">404</p>
         <h1 className="t-h1 mt-4 max-w-2xl">Такой страницы нет</h1>
         <p className="t-lead measure mt-5">Возможно, ссылка устарела. Начните с главной или сразу оставьте заявку.</p>
+        <p lang="en" className="measure mt-3 text-paper/60">
+          Page not found. The link may be outdated — <Link href="/en" className="link-underline">go to the English home page</Link>.
+        </p>
         <div className="mt-9 flex flex-col gap-3 sm:flex-row">
           <Link href="/" className="btn btn-brass">
             На главную

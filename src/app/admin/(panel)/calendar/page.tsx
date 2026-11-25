@@ -45,6 +45,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
   try {
     const rows = await prisma.booking.findMany({
       where: {
+        deletedAt: null,
         eventDate: {
           gte: new Date(Date.UTC(year, month - 1, 1)),
           lt: new Date(Date.UTC(year, month, 1)),

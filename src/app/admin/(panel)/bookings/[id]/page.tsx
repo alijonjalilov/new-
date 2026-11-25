@@ -45,6 +45,7 @@ export default async function BookingDetailPage({ params }: Props) {
     { label: "Площадка / адрес", value: b.address },
     { label: "Гостей", value: b.guests },
     { label: "Язык второго ведущего", value: b.language },
+    { label: "Язык сайта", value: (b.answers as { locale?: string } | null)?.locale === "en" ? "Английский" : "Русский" },
   ];
 
   return (
@@ -147,7 +148,7 @@ export default async function BookingDetailPage({ params }: Props) {
             </ul>
           </section>
 
-          <BookingActions id={b.id} status={b.status} adminNote={b.adminNote ?? ""} />
+          <BookingActions id={b.id} status={b.status} adminNote={b.adminNote ?? ""} deleted={b.deletedAt !== null} />
         </div>
       </div>
     </div>

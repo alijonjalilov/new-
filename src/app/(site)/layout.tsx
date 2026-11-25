@@ -4,9 +4,9 @@ import { SiteFooter } from "@/components/site-footer";
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <SiteHeader />
+      <SiteHeader locale="ru" />
       <main id="main">{children}</main>
-      <SiteFooter />
+      <SiteFooter locale="ru" />
     </>
   );
 }

@@ -4,6 +4,8 @@ import { Check, Plus, X } from "lucide-react";
 import { todayISO } from "@/lib/booking/engine";
 import { otherKey, type Answers, type AnswerValue, type ChoiceQuestion, type ListQuestion, type Question } from "@/lib/booking/types";
 import { cn } from "@/lib/utils";
+import { t } from "@/i18n/t";
+import type { Locale } from "@/i18n/config";
 
 interface Props {
   question: Question;
@@ -13,6 +15,7 @@ interface Props {
   /** Выбор одиночного варианта, после которого можно сразу идти дальше */
   onPicked: () => void;
   onEnter: () => void;
+  locale: Locale;
 }
 
 const errorId = (id: string) => `q-${id}-error`;
@@ -24,7 +27,7 @@ const errorId = (id: string) => `q-${id}-error`;
  */
 export const OPTION_MOTION = "opt";
 
-export function QuestionField({ question: q, answers, error, onChange, onPicked, onEnter }: Props) {
+export function QuestionField({ question: q, answers, error, onChange, onPicked, onEnter, locale }: Props) {
   const value = answers[q.id];
   const describedBy = error ? errorId(q.id) : undefined;
 
@@ -40,7 +43,9 @@ export function QuestionField({ question: q, answers, error, onChange, onPicked,
   switch (q.type) {
     case "single":
     case "multi":
-      control = <Choice q={q} answers={answers} onChange={onChange} onPicked={onPicked} onEnter={onEnter} describedBy={describedBy} />;
+      control = (
+        <Choice q={q} answers={answers} onChange={onChange} onPicked={onPicked} onEnter={onEnter} describedBy={describedBy} locale={locale} />
+      );
       break;
     case "text":
       control = (
@@ -120,7 +125,7 @@ export function QuestionField({ question: q, answers, error, onChange, onPicked,
       );
       break;
     case "list":
-      control = <ListField q={q} answers={answers} onChange={onChange} describedBy={describedBy} />;
+      control = <ListField q={q} answers={answers} onChange={onChange} describedBy={describedBy} locale={locale} />;
       break;
     case "date":
       control = (
@@ -175,8 +180,10 @@ function Choice({
   onPicked,
   onEnter,
   describedBy,
+  locale,
 }: {
   q: ChoiceQuestion;
+  locale: Locale;
   answers: Answers;
   onChange: Props["onChange"];
   onPicked: () => void;
@@ -246,7 +253,7 @@ function Choice({
       {otherSelected && (
         <div className="mt-4">
           <label htmlFor={`q-${q.id}-other`} className="field-label">
-            Уточните, пожалуйста
+            {t(locale, "Уточните, пожалуйста")}
           </label>
           <input
             id={`q-${q.id}-other`}
@@ -254,7 +261,7 @@ function Choice({
             className="field"
             autoFocus
             maxLength={300}
-            placeholder={q.otherPlaceholder ?? "Ваш вариант"}
+            placeholder={q.otherPlaceholder ?? t(locale, "Ваш вариант")}
             value={typeof otherVal === "string" ? otherVal : ""}
             onChange={(e) => onChange(otherKey(q.id), e.target.value)}
             onKeyDown={(e) => {
@@ -275,8 +282,10 @@ function ListField({
   answers,
   onChange,
   describedBy,
+  locale,
 }: {
   q: ListQuestion;
+  locale: Locale;
   answers: Answers;
   onChange: Props["onChange"];
   describedBy?: string;
@@ -307,7 +316,7 @@ function ListField({
               type="button"
               onClick={() => onChange(q.id, items.filter((_, j) => j !== i))}
               className="inline-flex size-[3.25rem] shrink-0 items-center justify-center rounded-[0.875rem] border border-line text-muted hover:text-ink"
-              aria-label={`Убрать поле ${i + 1}`}
+              aria-label={t(locale, "Убрать поле {n}", { n: i + 1 })}
             >
               <X aria-hidden className="size-4" />
             </button>

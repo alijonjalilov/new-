@@ -63,9 +63,12 @@ model Booking {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  /// Когда заявку переместили в корзину (null — заявка не удалена)
+  deletedAt DateTime?
 
   @@index([eventType])
   @@index([status])
   @@index([createdAt])
   @@index([eventDate])
+  @@index([deletedAt])
 }

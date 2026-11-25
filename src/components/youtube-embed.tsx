@@ -4,13 +4,25 @@ import { useState } from "react";
 import { Play } from "lucide-react";
 import { youtubeId } from "@/content/portfolio";
 import { cn } from "@/lib/utils";
+import { t } from "@/i18n/t";
+import type { Locale } from "@/i18n/config";
 
 /**
  * «Ленивое» видео YouTube: до клика показывается только обложка,
  * плеер загружается по нажатию — страница остаётся быстрой.
  * Без ссылки показывается заглушка.
  */
-export function YouTubeEmbed({ url, title, className }: { url?: string; title: string; className?: string }) {
+export function YouTubeEmbed({
+  url,
+  title,
+  className,
+  locale = "ru",
+}: {
+  url?: string;
+  title: string;
+  className?: string;
+  locale?: Locale;
+}) {
   const [active, setActive] = useState(false);
   const id = youtubeId(url);
 
@@ -20,7 +32,7 @@ export function YouTubeEmbed({ url, title, className }: { url?: string; title: s
         <span className="flex size-14 items-center justify-center rounded-full border border-paper/30">
           <Play aria-hidden className="size-5 translate-x-0.5" />
         </span>
-        <span className="text-sm">Место для видео YouTube</span>
+        <span className="text-sm">{t(locale, "Место для видео YouTube")}</span>
       </div>
     );
   }
@@ -36,7 +48,7 @@ export function YouTubeEmbed({ url, title, className }: { url?: string; title: s
           className="absolute inset-0 size-full"
         />
       ) : (
-        <button type="button" onClick={() => setActive(true)} className="group absolute inset-0 size-full" aria-label={`Смотреть видео: ${title}`}>
+        <button type="button" onClick={() => setActive(true)} className="group absolute inset-0 size-full" aria-label={t(locale, "Смотреть видео: {title}", { title })}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`}

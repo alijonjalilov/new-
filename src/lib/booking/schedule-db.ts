@@ -41,7 +41,7 @@ export async function loadConfirmedOn(dates: (string | null)[]): Promise<Schedul
   const unique = [...new Set(dates.filter((d): d is string => !!d))];
   if (unique.length === 0) return [];
   const rows = await prisma.booking.findMany({
-    where: { status: "CONFIRMED", eventDate: { in: unique.map((d) => new Date(`${d}T00:00:00.000Z`)) } },
+    where: { status: "CONFIRMED", deletedAt: null, eventDate: { in: unique.map((d) => new Date(`${d}T00:00:00.000Z`)) } },
     select: scheduleSelect,
   });
   return rows.map(toScheduleItem);

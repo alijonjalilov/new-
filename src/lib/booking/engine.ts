@@ -4,6 +4,8 @@
  * используется и в браузере, и в API.
  */
 import { SCENARIOS } from "./scenarios";
+import { t } from "@/i18n/t";
+import type { Locale } from "@/i18n/config";
 import {
   otherKey,
   type Answers,
@@ -62,14 +64,20 @@ function isValidDate(value: string): boolean {
  * Проверка одного ответа. Возвращает текст ошибки или null.
  * `minDate` — минимальная допустимая дата (по умолчанию — вчера, с запасом на часовые пояса).
  */
-export function validateAnswer(q: Question, answers: Answers, opts: { minDate?: string } = {}): string | null {
+export function validateAnswer(
+  q: Question,
+  answers: Answers,
+  opts: { minDate?: string; locale?: Locale } = {},
+): string | null {
+  const L = opts.locale ?? "ru";
+  const m = (ru: string, vars?: Record<string, string | number>) => t(L, ru, vars);
   const empty = isEmptyAnswer(q, answers);
   if (empty) {
     if (q.optional) return null;
-    if (q.type === "single" || q.type === "multi") return "Выберите вариант";
-    if (q.type === "number" && q.suffix) return "Укажите сумму цифрами";
-    if (q.type === "consent") return "Отметьте галочку, чтобы продолжить";
-    return "Заполните это поле";
+    if (q.type === "single" || q.type === "multi") return m("Выберите вариант");
+    if (q.type === "number" && q.suffix) return m("Укажите сумму цифрами");
+    if (q.type === "consent") return m("Отметьте галочку, чтобы продолжить");
+    return m("Заполните это поле");
   }
 
   const v = answers[q.id];
@@ -77,62 +85,65 @@ export function validateAnswer(q: Question, answers: Answers, opts: { minDate?: 
   switch (q.type) {
     case "single": {
       const value = asString(v);
-      if (!q.options.some((o) => o.value === value)) return "Выберите вариант из списка";
+      if (!q.options.some((o) => o.value === value)) return m("Выберите вариант из списка");
       break;
     }
     case "multi": {
       const values = asArray(v);
-      if (new Set(values).size !== values.length) return "Повторяющиеся значения";
-      if (!values.every((x) => q.options.some((o) => o.value === x))) return "Выберите варианты из списка";
+      if (new Set(values).size !== values.length) return m("Повторяющиеся значения");
+      if (!values.every((x) => q.options.some((o) => o.value === x))) return m("Выберите варианты из списка");
       break;
     }
     case "text":
     case "textarea": {
       const value = asString(v).trim();
       const max = q.maxLength ?? (q.type === "text" ? 200 : 1000);
-      if (value.length < 2) return "Слишком коротко";
-      if (value.length > max) return `Не более ${max} символов`;
+      if (value.length < 2) return m("Слишком коротко");
+      if (value.length > max) return m("Не более {n} символов", { n: max });
       break;
     }
     case "list": {
       const values = asArray(v);
-      if (values.length > q.maxItems) return `Не более ${q.maxItems} полей`;
+      if (values.length > q.maxItems) return m("Не более {n} полей", { n: q.maxItems });
       for (const x of values) {
-        const t = x.trim();
-        if (t && t.length < 2) return "Слишком коротко";
-        if (t.length > 100) return "Не более 100 символов в одном поле";
+        const item = x.trim();
+        if (item && item.length < 2) return m("Слишком коротко");
+        if (item.length > 100) return m("Не более 100 символов в одном поле");
       }
       break;
     }
     case "number": {
       const value = asString(v).trim();
-      if (!/^\d+$/.test(value)) return "Введите число";
+      if (!/^\d+$/.test(value)) return m("Введите число");
       const n = Number(value);
-      if (q.suffix && n < q.min) return `Сумма должна быть не меньше ${q.min.toLocaleString("ru-RU")} ${q.suffix}`;
-      if (n < q.min || n > q.max) return `Число от ${q.min} до ${q.max}`;
+      if (q.suffix) {
+        if (n < q.min) return m("Сумма должна быть не меньше {min} {currency}", { min: q.min, currency: m(q.suffix) });
+        if (n > q.max) return m("Слишком большая сумма");
+      }
+      if (n < q.min || n > q.max) return m("Число от {min} до {max}", { min: q.min, max: q.max });
       break;
     }
     case "date": {
       const value = asString(v);
-      if (!isValidDate(value)) return "Выберите корректную дату";
+      if (!isValidDate(value)) return m("Выберите корректную дату");
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       const min = opts.minDate ?? todayISO(yesterday);
-      if (value < min) return "Дата уже прошла";
+      if (value < min) return m("Дата уже прошла");
       const maxYear = new Date().getFullYear() + 5;
-      if (Number(value.slice(0, 4)) > maxYear) return "Слишком далёкая дата";
+      if (Number(value.slice(0, 4)) > maxYear) return m("Слишком далёкая дата");
       break;
     }
     case "time": {
-      if (!TIME_RE.test(asString(v))) return "Укажите время в формате ЧЧ:ММ";
+      if (!TIME_RE.test(asString(v))) return m("Укажите время в формате ЧЧ:ММ");
       break;
     }
   }
 
   if (hasOtherSelected(q, answers)) {
     const other = asString(answers[otherKey(q.id)]).trim();
-    if (other.length < 2) return "Уточните, пожалуйста, ваш вариант";
-    if (other.length > 300) return "Не более 300 символов";
+    if (other.length < 2) return m("Уточните, пожалуйста, ваш вариант");
+    if (other.length > 300) return m("Не более 300 символов");
   }
 
   return null;
@@ -175,7 +186,7 @@ export function normalizeAnswers(eventType: EventTypeKey, answers: Answers): Ans
 export function validateAllAnswers(
   eventType: EventTypeKey,
   answers: Answers,
-  opts: { minDate?: string } = {},
+  opts: { minDate?: string; locale?: Locale } = {},
 ): Record<string, string> {
   const errors: Record<string, string> = {};
   for (const q of getVisibleQuestions(eventType, answers)) {
@@ -190,15 +201,25 @@ const MONTHS = [
   "июля", "августа", "сентября", "октября", "ноября", "декабря",
 ];
 
-export function formatDateRu(iso: string): string {
+const MONTHS_EN = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+/** Дата прописью на нужном языке: «24 января 2027» / «January 24, 2027» */
+export function formatDate(iso: string, locale: Locale = "ru"): string {
   if (!isValidDate(iso)) return iso;
   const [y, m, d] = iso.split("-").map(Number);
-  return `${d} ${MONTHS[m - 1]} ${y}`;
+  if (locale === "en") return `${MONTHS_EN[m - 1]} ${d}, ${y}`;
+  return `${d} ${t(locale, MONTHS[m - 1])} ${y}`;
 }
 
+export const formatDateRu = (iso: string) => formatDate(iso, "ru");
+
 /** Человекочитаемое значение ответа. */
-export function formatAnswer(q: Question, answers: Answers): string {
+export function formatAnswer(q: Question, answers: Answers, locale: Locale = "ru"): string {
   const v = answers[q.id];
+  const tr = (ru: string) => t(locale, ru);
   if (isEmptyAnswer(q, answers)) return "—";
   const other = asString(answers[otherKey(q.id)]).trim();
 
@@ -206,20 +227,20 @@ export function formatAnswer(q: Question, answers: Answers): string {
     case "single": {
       const opt = q.options.find((o) => o.value === v);
       if (!opt) return asString(v);
-      return q.otherValue && v === q.otherValue && other ? `${opt.label}: ${other}` : opt.label;
+      return q.otherValue && v === q.otherValue && other ? `${tr(opt.label)}: ${other}` : tr(opt.label);
     }
     case "multi":
       return asArray(v)
         .map((x) => {
           const opt = q.options.find((o) => o.value === x);
           if (!opt) return x;
-          return q.otherValue && x === q.otherValue && other ? `${opt.label} (${other})` : opt.label;
+          return q.otherValue && x === q.otherValue && other ? `${tr(opt.label)} (${other})` : tr(opt.label);
         })
         .join(", ");
     case "date":
-      return formatDateRu(asString(v));
+      return formatDate(asString(v), locale);
     case "consent":
-      return "Да";
+      return tr("Да");
     case "list":
       return asArray(v)
         .map((x) => x.trim())
@@ -228,7 +249,7 @@ export function formatAnswer(q: Question, answers: Answers): string {
     case "number": {
       const n = Number(asString(v));
       if (!q.suffix || !Number.isFinite(n)) return asString(v).trim();
-      return `${n.toLocaleString("ru-RU")} ${q.suffix}`;
+      return `${n.toLocaleString(locale === "en" ? "en-US" : "ru-RU")} ${tr(q.suffix)}`;
     }
     default:
       return asString(v).trim();
@@ -241,11 +262,11 @@ export interface SummaryItem {
   value: string;
 }
 
-export function buildSummary(eventType: EventTypeKey, answers: Answers): SummaryItem[] {
+export function buildSummary(eventType: EventTypeKey, answers: Answers, locale: Locale = "ru"): SummaryItem[] {
   return getVisibleQuestions(eventType, answers).map((q) => ({
     id: q.id,
-    label: q.summaryLabel,
-    value: formatAnswer(q, answers),
+    label: t(locale, q.summaryLabel),
+    value: formatAnswer(q, answers, locale),
   }));
 }
 
