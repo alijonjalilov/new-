@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { clients, type Client } from "@/content/clients";
+import { clientName, clients, type Client } from "@/content/clients";
 import type { Locale } from "@/i18n/config";
 import { t } from "@/i18n/t";
 import { SectionHeading } from "@/components/section";
@@ -11,10 +11,10 @@ import { SectionHeading } from "@/components/section";
  */
 export function ClientsMarquee({ locale }: { locale: Locale }) {
   const tr = (s: string) => t(locale, s);
-  const half = Math.ceil(clients.length / 2);
+  // Компании раскладываются по строкам через одну, чтобы строки были вперемешку
   const rows: { items: Client[]; dir: "right" | "left" }[] = [
-    { items: clients.slice(0, half), dir: "right" },
-    { items: clients.slice(half), dir: "left" },
+    { items: clients.filter((_, i) => i % 2 === 0), dir: "right" },
+    { items: clients.filter((_, i) => i % 2 === 1), dir: "left" },
   ];
 
   return (
@@ -32,14 +32,14 @@ export function ClientsMarquee({ locale }: { locale: Locale }) {
       {/* Для экранных дикторов — обычный список без повторов */}
       <ul className="sr-only">
         {clients.map((c) => (
-          <li key={c.slug}>{locale === "en" ? c.nameEn : c.name}</li>
+          <li key={c.slug}>{clientName(c, locale)}</li>
         ))}
       </ul>
 
       <div aria-hidden className="space-y-4 md:space-y-6">
         {rows.map((row, i) => (
           <div key={i} className="marquee">
-            <div className={`marquee-track marquee-${row.dir}`}>
+            <div className={`marquee-track marquee-${row.dir}`} style={{ animationDuration: `${row.items.length * 7}s` }}>
               {/* Содержимое повторено дважды — так лента крутится без шва */}
               {[0, 1].map((copy) =>
                 row.items.map((c) => <ClientPill key={`${copy}-${c.slug}`} client={c} locale={locale} />),
@@ -74,7 +74,7 @@ function ClientPill({ client, locale }: { client: Client; locale: Locale }) {
         />
       </span>
       <span className="whitespace-nowrap text-lg font-semibold tracking-tight md:text-2xl">
-        {locale === "en" ? client.nameEn : client.name}
+        {clientName(client, locale)}
       </span>
     </div>
   );
