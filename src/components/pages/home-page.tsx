@@ -42,6 +42,9 @@ export function HomePage({ locale }: { locale: Locale }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Hero locale={locale} />
 
+      {/* С кем я работал — сразу после первого экрана */}
+      <ClientsMarquee locale={locale} />
+
       {/* Вступление */}
       <section className="container-site grid gap-10 py-24 md:grid-cols-[1fr_1.4fr] md:py-32">
         <h2 className="t-h2">{tr("Ведущий — это голос вашего события")}</h2>
@@ -62,11 +65,8 @@ export function HomePage({ locale }: { locale: Locale }) {
         </div>
       </section>
 
-      {/* С кем я работал — две бегущие строки логотипов */}
-      <ClientsMarquee locale={locale} />
-
       {/* Мероприятия — список, а не сетка карточек */}
-      <section aria-labelledby="events-title" className="container-site py-24 md:py-32">
+      <section aria-labelledby="events-title" className="container-site pb-24 md:pb-32">
         <SectionHeading
           id="events-title"
           title={tr("Мероприятия")}

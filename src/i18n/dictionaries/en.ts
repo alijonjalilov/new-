@@ -545,4 +545,6 @@ export const en: Record<string, string> = {
   "Сайт временно закрыт": "The site is temporarily closed",
   "Идут технические работы, скоро всё снова заработает. Чтобы заказать ведущего, позвоните или напишите — я на связи.": "We’re doing some maintenance and will be back soon. To book a host, call or message me — I’m available.",
   "Сайт временно закрыт. Позвоните или напишите нам напрямую.": "The site is temporarily closed. Please call or message us directly.",
+  "Посмотреть все": "View all",
+  "Свернуть": "Show less",
 };
