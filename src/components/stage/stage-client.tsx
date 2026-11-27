@@ -117,7 +117,10 @@ export function StageClient({ data }: { data: StageData }) {
     html.classList.add("stage-lock");
 
     let T = 0;
-    const LEN = 14;
+    // Темп: вся страница ≈ 8 экранов прокрутки; один «щелчок» колеса заметно двигает сцену,
+    // а резкий рывок колесом или тачпадом не перескакивает через несколько сцен
+    const LEN = 8;
+    const MAX_STEP = 110; // px за одно событие колеса
     const push = (d: number) => {
       T = cl(T + d);
     };
@@ -127,6 +130,7 @@ export function StageClient({ data }: { data: StageData }) {
       let d = e.deltaY;
       if (e.deltaMode === 1) d *= 16;
       if (e.deltaMode === 2) d *= innerHeight;
+      d = Math.max(-MAX_STEP, Math.min(MAX_STEP, d));
       push(d / (innerHeight * LEN));
     };
     let ty: number | null = null;
@@ -199,7 +203,6 @@ export function StageClient({ data }: { data: StageData }) {
     const sts = $$(".st");
     const venues = $$(".venue");
     const mic = $(".micbox");
-    const halo = $(".halo");
     const asm = $(".asm");
     const fpanel = $(".F");
     const vwrap = $(".venues");
@@ -217,9 +220,7 @@ export function StageClient({ data }: { data: StageData }) {
     // Кольцо логотипов: за сцену «Спасибо за доверие» делает ровно один оборот,
     // пока мышь на логотипе — стоит, потом плавно догоняет
     let phase = 0;
-    // Скорость прокрутки: чем резче крутят, тем сильнее наклоняется микрофон
-    let vel = 0;
-    let prevCur = 0;
+
     let hovered: HTMLElement | null = null;
     const zoom = new Map<HTMLElement, number>(); // плавное увеличение логотипа под мышью
     const onOrbEnter = (e: Event) => {
@@ -241,8 +242,8 @@ export function StageClient({ data }: { data: StageData }) {
 
       // Разборка микрофона: 0.12–0.20 раскрывается, 0.29–0.335 собирается
       const e = Math.min(seg(p, 0.12, 0.2), 1 - seg(p, 0.29, 0.335));
-      const lean = cl(vel * 9000, -14, 14);
-      const ang = mix(-16 + Math.sin(p * Math.PI * 5) * 4, -3, ease(cl(e * 1.4))) + lean;
+      // Микрофон не реагирует на прокрутку: стоит под углом и меняется только по сценам
+      const ang = mix(-16, -3, ease(cl(e * 1.4)));
       const sc = mix(1 + seg(p, 0.91, 1) * 0.05, 0.86, e);
 
       // Форматы: микрофон уезжает вправо/влево вместе с площадкой
@@ -254,8 +255,7 @@ export function StageClient({ data }: { data: StageData }) {
       const env = Math.min(seg(p, 0.43, 0.455), 1 - seg(p, 0.665, 0.69));
       const dx = side * env * W * 0.2;
       const cy = narrow ? mix(20, 8, e) : 0;
-      mic.style.transform = `translate(calc(-50% + ${dx}px),calc(-50% + ${cy}vh)) rotate(${ang}deg) scale(${sc * (1 + Math.min(Math.abs(vel) * 60, 0.04))})`;
-      halo.style.filter = `brightness(${1 + Math.min(Math.abs(vel) * 500, 1.5)})`;
+      mic.style.transform = `translate(calc(-50% + ${dx}px),calc(-50% + ${cy}vh)) rotate(${ang}deg) scale(${sc})`;
       asm.style.opacity = String(1 - seg(e, 0, 0.3));
       const spread = mix(-0.32, 0.04, ease(e));
       pEls.forEach((pe, i) => {
@@ -323,8 +323,6 @@ export function StageClient({ data }: { data: StageData }) {
 
       // «Мне доверяют»: две орбиты логотипов вокруг микрофона, вращаются навстречу друг другу
       const lv = Math.min(seg(p, 0.675, 0.7), 1 - seg(p, 0.76, 0.785));
-      vel = vel * 0.85 + (p - prevCur) * 0.15;
-      prevCur = p;
       // один полный оборот, пока сцена видна (0.695 → 0.765); в начале и в конце логотипы на своих местах
       const target = Math.PI * 2 * ease(seg(p, 0.695, 0.765));
       if (!hovered) phase += (target - phase) * 0.2;
@@ -375,7 +373,7 @@ export function StageClient({ data }: { data: StageData }) {
     });
 
     function tick() {
-      cur = cur + (T - cur) * 0.09;
+      cur = cur + (T - cur) * 0.07;
       if (Math.abs(T - cur) < 0.0003) cur = T;
       render(cur);
       raf = requestAnimationFrame(tick);

@@ -81,7 +81,6 @@ html.stage-lock body{touch-action:none;scrollbar-width:none}
 .stage-root .snav{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px max(4vw,14px)}
 .stage-root .logo{display:inline-flex;align-items:center;min-height:44px;font:800 18px var(--font-unbounded),var(--f-head);letter-spacing:.04em;color:var(--ink);text-decoration:none}
 .stage .T .thanks{color:var(--ink);font-weight:600;margin-top:6px}
-.stage .halo{will-change:filter}
 .stage-root .snav-r{display:flex;align-items:center;gap:14px}
 .stage-root .lang{position:relative}
 .stage-root .globe{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:rgba(0,0,0,.5);color:var(--ink);cursor:pointer;text-decoration:none}
