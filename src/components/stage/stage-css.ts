@@ -15,9 +15,9 @@ html.stage-lock body{touch-action:none;scrollbar-width:none}
 .stage-root ol{list-style:none;margin:0;padding:0}
 .stage{position:fixed;inset:0;overflow:hidden;background:var(--bg)}
 .stage .halo{position:absolute;left:50%;top:46%;width:min(80vh,90vw);aspect-ratio:1;transform:translate(-50%,-50%);background:radial-gradient(closest-side,rgba(255,255,255,.07),rgba(255,255,255,.02) 55%,transparent);pointer-events:none}
-.stage .micbox{position:absolute;left:50%;top:50%;height:80vh;aspect-ratio:240/860;z-index:3}
+.stage .micbox{position:absolute;left:50%;top:50%;height:80vh;aspect-ratio:341/1310;z-index:3}
 .stage .asm{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 0 1px rgba(255,255,255,.28)) drop-shadow(0 0 24px rgba(255,255,255,.05))}
-.stage .exp{position:absolute;left:50%;top:50%;height:115.8%;aspect-ratio:215/970;transform:translate(-50%,-50%)}
+.stage .exp{position:absolute;left:50%;top:50%;height:116.1%;aspect-ratio:215/970;transform:translate(-50%,-50%)}
 .stage .part{position:absolute;inset:0;will-change:transform,opacity;opacity:0}
 .stage .part img{width:100%;height:100%;display:block;filter:drop-shadow(0 0 1px rgba(255,255,255,.25))}
 .stage .mk{position:absolute;width:1px;height:1px}
