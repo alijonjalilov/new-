@@ -576,4 +576,8 @@ export const en: Record<string, string> = {
   "Корпус": "Body",
   "Импровизация": "Improvisation",
   "когда что-то пошло не по плану": "when something doesn’t go to plan",
+  "Спасибо за доверие": "Thank you for your trust",
+  "Международные организации, банки, СМИ и государственные структуры, с которыми мы работали.": "International organisations, banks, media and government bodies we have worked with.",
+  "Благодарю каждого за сотрудничество!": "Thank you all for working with me!",
+  "Вход в панель управления": "Sign in to the admin panel",
 };

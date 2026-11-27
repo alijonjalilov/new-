@@ -26,7 +26,7 @@ export type StageData = {
   steps: { title: string; text: string }[];
   stats: { subtitle: string; items: { n: number; inf: boolean; label: string }[] };
   clients: { slug: string; name: string; ratio: number; round: boolean }[];
-  links: { whatsapp: string; telegram: string; booking: string; langs: { code: string; short: string; name: string; href: string }[] };
+  links: { home: string; whatsapp: string; telegram: string; booking: string; langs: { code: string; short: string; name: string; href: string }[] };
 };
 
 /* Детали разобранного микрофона: границы в процентах высоты exp.webp; i — номер подписи */
@@ -105,7 +105,6 @@ export function StageClient({ data }: { data: StageData }) {
   const root = useRef<HTMLDivElement>(null);
   const tx = data.texts;
   const F = data.formats;
-  const half = Math.ceil(data.clients.length / 2);
 
   useEffect(() => {
     const el = root.current;
@@ -200,6 +199,7 @@ export function StageClient({ data }: { data: StageData }) {
     const sts = $$(".st");
     const venues = $$(".venue");
     const mic = $(".micbox");
+    const halo = $(".halo");
     const asm = $(".asm");
     const fpanel = $(".F");
     const vwrap = $(".venues");
@@ -214,8 +214,11 @@ export function StageClient({ data }: { data: StageData }) {
     let lastK = -1;
     let cur = 0;
     let raf = 0;
-    // Орбиты крутятся только вместе с колесом; пока мышь на логотипе — стоят
+    // Кольцо логотипов: за сцену «Спасибо за доверие» делает ровно один оборот,
+    // пока мышь на логотипе — стоит, потом плавно догоняет
     let phase = 0;
+    // Скорость прокрутки: чем резче крутят, тем сильнее наклоняется микрофон
+    let vel = 0;
     let prevCur = 0;
     let hovered: HTMLElement | null = null;
     const zoom = new Map<HTMLElement, number>(); // плавное увеличение логотипа под мышью
@@ -238,7 +241,8 @@ export function StageClient({ data }: { data: StageData }) {
 
       // Разборка микрофона: 0.12–0.20 раскрывается, 0.29–0.335 собирается
       const e = Math.min(seg(p, 0.12, 0.2), 1 - seg(p, 0.29, 0.335));
-      const ang = mix(-16 + Math.sin(p * Math.PI * 5) * 4, -3, ease(cl(e * 1.4)));
+      const lean = cl(vel * 9000, -14, 14);
+      const ang = mix(-16 + Math.sin(p * Math.PI * 5) * 4, -3, ease(cl(e * 1.4))) + lean;
       const sc = mix(1 + seg(p, 0.91, 1) * 0.05, 0.86, e);
 
       // Форматы: микрофон уезжает вправо/влево вместе с площадкой
@@ -250,7 +254,8 @@ export function StageClient({ data }: { data: StageData }) {
       const env = Math.min(seg(p, 0.43, 0.455), 1 - seg(p, 0.665, 0.69));
       const dx = side * env * W * 0.2;
       const cy = narrow ? mix(20, 8, e) : 0;
-      mic.style.transform = `translate(calc(-50% + ${dx}px),calc(-50% + ${cy}vh)) rotate(${ang}deg) scale(${sc})`;
+      mic.style.transform = `translate(calc(-50% + ${dx}px),calc(-50% + ${cy}vh)) rotate(${ang}deg) scale(${sc * (1 + Math.min(Math.abs(vel) * 60, 0.04))})`;
+      halo.style.filter = `brightness(${1 + Math.min(Math.abs(vel) * 500, 1.5)})`;
       asm.style.opacity = String(1 - seg(e, 0, 0.3));
       const spread = mix(-0.32, 0.04, ease(e));
       pEls.forEach((pe, i) => {
@@ -318,21 +323,18 @@ export function StageClient({ data }: { data: StageData }) {
 
       // «Мне доверяют»: две орбиты логотипов вокруг микрофона, вращаются навстречу друг другу
       const lv = Math.min(seg(p, 0.675, 0.7), 1 - seg(p, 0.76, 0.785));
-      if (!hovered) phase += (p - prevCur) * 14;
+      vel = vel * 0.85 + (p - prevCur) * 0.15;
       prevCur = p;
+      // один полный оборот, пока сцена видна (0.695 → 0.765); в начале и в конце логотипы на своих местах
+      const target = Math.PI * 2 * ease(seg(p, 0.695, 0.765));
+      if (!hovered) phase += (target - phase) * 0.2;
       if (lv > 0) {
         const mr = mic.getBoundingClientRect();
         const oy = (mr.top + mr.bottom) / 2 - H / 2;
-        const rings = [
-          { rx: narrow ? W * 0.44 : Math.min(W * 0.41, 600), ry: narrow ? H * 0.075 : H * 0.085, y: narrow ? H * 0.1 : H * 0.12, dir: 1 },
-          { rx: narrow ? W * 0.33 : Math.min(W * 0.28, 410), ry: narrow ? H * 0.055 : H * 0.06, y: narrow ? -H * 0.1 : -H * 0.14, dir: -1 },
-        ];
-        orbs.forEach((o, i) => {
-          const r = i < half ? 0 : 1;
-          const n = r === 0 ? half : orbs.length - half;
-          const j = r === 0 ? i : i - half;
-          const R = rings[r];
-          const t = (j / n) * Math.PI * 2 + R.dir * phase;
+        const R = { rx: narrow ? W * 0.45 : Math.min(W * 0.42, 620), ry: narrow ? H * 0.17 : H * 0.17, y: narrow ? H * 0.06 : H * 0.03 };
+        const n = orbs.length;
+        orbs.forEach((o, j) => {
+          const t = Math.PI / 2 + (j / n) * Math.PI * 2 + phase;
           const s = Math.sin(t);
           const hot = o === hovered;
           const z = (zoom.get(o) ?? 1) + ((hot ? 1.45 : 1) - (zoom.get(o) ?? 1)) * 0.25;
@@ -398,7 +400,7 @@ export function StageClient({ data }: { data: StageData }) {
         o.removeEventListener("pointerleave", onOrbLeave);
       });
     };
-  }, [F, half, tx.hudEnd, tx.hudScroll]);
+  }, [F, tx.hudEnd, tx.hudScroll]);
 
   return (
     <div ref={root} className="stage-root" data-locale={data.locale}>
@@ -526,6 +528,7 @@ export function StageClient({ data }: { data: StageData }) {
         <div className="ly T" data-a=".68" data-b=".78" data-d="0">
           <h2>{tx.trustTitle}</h2>
           <p>{tx.trustText}</p>
+          <p className="thanks">{tx.trustThanks}</p>
           <ul className="sr-only" aria-label={tx.clientsList}>
             {data.clients.map((c) => (
               <li key={c.slug}>{c.name}</li>
@@ -574,8 +577,17 @@ export function StageClient({ data }: { data: StageData }) {
       </main>
 
       <nav className="snav">
-        <span className="logo">ROVI.TJ</span>
+        <a className="logo" href={data.links.home} data-go="0">
+          ROVI.TJ
+        </a>
         <div className="snav-r">
+          <a className="globe" href="/admin" aria-label={tx.admin} title={tx.admin}>
+            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4" />
+              <path d="M10 16l4-4-4-4" />
+              <path d="M14 12H4" />
+            </svg>
+          </a>
           <LangMenu langs={data.links.langs} current={data.locale} label={tx.languages} />
           <a className="sbtn" href={data.links.booking} data-go=".95">
             {tx.navBook}

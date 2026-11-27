@@ -63,7 +63,7 @@ html.stage-lock body{touch-action:none;scrollbar-width:none}
 .stage .stat .big{font-size:clamp(34px,4.2vw,58px);font-weight:800;font-variant-numeric:tabular-nums}
 .stage .stat small{color:var(--mute);font-size:15px}
 .stage .count{font:700 18px var(--f-head);color:var(--silver)}
-.stage .orb{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;opacity:0;pointer-events:none;will-change:transform,opacity}
+.stage .orb{position:absolute;left:50%;top:50%;width:66px;height:66px;margin:-33px 0 0 -33px;opacity:0;pointer-events:none;will-change:transform,opacity}
 .stage .orb.live{pointer-events:auto;cursor:default}
 .stage .orb-c{position:absolute;inset:0;border-radius:50%;background:#fff;display:grid;place-items:center;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.25),0 8px 22px rgba(0,0,0,.6)}
 .stage .orb-c img{object-fit:contain;display:block}
@@ -79,10 +79,13 @@ html.stage-lock body{touch-action:none;scrollbar-width:none}
 .stage .st h3{font-size:clamp(18px,2vw,26px);font-weight:700}
 .stage .st p{margin:4px 0 0;font-size:15px;color:var(--mute)}
 .stage-root .snav{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px max(4vw,14px)}
-.stage-root .logo{font:800 18px var(--font-unbounded),var(--f-head);letter-spacing:.04em}
+.stage-root .logo{display:inline-flex;align-items:center;min-height:44px;font:800 18px var(--font-unbounded),var(--f-head);letter-spacing:.04em;color:var(--ink);text-decoration:none}
+.stage .T .thanks{color:var(--ink);font-weight:600;margin-top:6px}
+.stage .halo{will-change:filter}
 .stage-root .snav-r{display:flex;align-items:center;gap:14px}
 .stage-root .lang{position:relative}
-.stage-root .globe{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:rgba(0,0,0,.5);color:var(--ink);cursor:pointer}
+.stage-root .globe{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:rgba(0,0,0,.5);color:var(--ink);cursor:pointer;text-decoration:none}
+.stage-root .globe:hover{border-color:rgba(255,255,255,.5)}
 .stage-root .globe[aria-expanded="true"]{background:#fff;color:#000}
 .stage-root .lang-list{position:absolute;right:0;top:calc(100% + 8px);min-width:160px;margin:0;padding:6px;list-style:none;border-radius:16px;background:rgba(10,10,10,.94);border:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .stage-root .lang-list a{display:flex;align-items:center;min-height:44px;padding:0 14px;border-radius:10px;color:var(--mute);text-decoration:none;font:600 15px var(--f-body)}
@@ -108,7 +111,7 @@ html.stage-lock body{touch-action:none;scrollbar-width:none}
  .stage .F p{font-size:15px;margin-top:8px}
  .stage .nums{height:24vh}.stage .nums .big{font-size:130px}
  .stage .stat{padding:6px 0}.stage .stat .big{font-size:30px}
- .stage .orb{width:34px;height:34px;margin:-17px 0 0 -17px}
+ .stage .orb{width:40px;height:40px;margin:-20px 0 0 -20px}
  .stage .orb-n{font-size:12px}
  .stage .st{padding:8px 0 8px 16px}
  .stage .st:not(.cur) p{display:none}

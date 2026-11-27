@@ -36,8 +36,9 @@ const TEXTS = {
   partsTitle: "Больше, чем микрофон",
   partsText: "Гости запоминают не тайминг, а ощущение вечера. За ним стоит работа, которую не видно.",
   statsTitle: "Один вечер в цифрах",
-  trustTitle: "Мне доверяют",
-  trustText: "Международные организации, банки, СМИ и государственные структуры.",
+  trustTitle: "Спасибо за доверие",
+  trustText: "Международные организации, банки, СМИ и государственные структуры, с которыми мы работали.",
+  trustThanks: "Благодарю каждого за сотрудничество!",
   processKicker: "Как мы будем работать",
   finalTitle: "Ваш вечер — следующий",
   finalText: "Напишите дату и формат, отвечу в течение дня.",
@@ -49,6 +50,7 @@ const TEXTS = {
   mic: "Микрофон",
   clientsList: "С кем я работал",
   languages: "Язык сайта",
+  admin: "Вход в панель управления",
 };
 export type StageTexts = Record<keyof typeof TEXTS, string>;
 
@@ -76,6 +78,7 @@ export async function StageHome({ locale, preview }: { locale: Locale; preview: 
     },
     clients: clients.map((c) => ({ slug: c.slug, name: clientName(c, locale), ratio: c.ratio, round: Boolean(c.round) })),
     links: {
+      home: lp(locale, "/"),
       whatsapp: contactLinks.whatsapp,
       telegram: contactLinks.telegram,
       booking: lp(locale, "/booking"),
