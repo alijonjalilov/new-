@@ -250,11 +250,20 @@ export function StageClient({ data }: { data: StageData }) {
       const fpos = seg(p, 0.44, 0.68) * 5;
       const f = Math.min(4, Math.floor(fpos));
       const fr = fpos - f;
-      const nextSide = F[Math.min(4, f + 1)].side;
-      const side = mix(F[f].side, nextSide, ease(seg(fr, 0.78, 1)));
+      // Микрофон никогда не «висит» посередине: на смене формата он гаснет на одной
+      // стороне и появляется на другой (то же при входе и выходе из сцены форматов)
       const env = Math.min(seg(p, 0.43, 0.455), 1 - seg(p, 0.665, 0.69));
-      const dx = side * env * W * 0.2;
-      const cy = narrow ? mix(20, 8, e) : 0;
+      const tr = f < 4 ? seg(fr, 0.7, 1) : 0;
+      const shown = tr < 0.5 ? f : f + 1; // какой формат показан: меняется, когда микрофон невидим
+      const side = tr < 0.5 ? F[f].side : F[f + 1].side;
+      const fade = Math.min(Math.abs(1 - 2 * tr), Math.abs(1 - 2 * env));
+      const dx = env < 0.5 ? 0 : side * W * 0.2;
+      mic.style.opacity = String(fade);
+      fpanel.style.setProperty("--cf", String(Math.abs(1 - 2 * tr)));
+      // В «Спасибо за доверие» микрофон и кольцо поднимаются, чтобы текст их не закрывал
+      const lv = Math.min(seg(p, 0.675, 0.7), 1 - seg(p, 0.76, 0.785));
+      const lift = ease(lv) * (narrow ? 0 : -9);
+      const cy = (narrow ? mix(20, 8, e) : 0) + lift;
       mic.style.transform = `translate(calc(-50% + ${dx}px),calc(-50% + ${cy}vh)) rotate(${ang}deg) scale(${sc})`;
       asm.style.opacity = String(1 - seg(e, 0, 0.3));
       const spread = mix(-0.32, 0.04, ease(e));
@@ -309,7 +318,8 @@ export function StageClient({ data }: { data: StageData }) {
       });
 
       vwrap.style.opacity = String(env);
-      if (f !== lastF) {
+      if (shown !== lastF) {
+        const f = shown;
         lastF = f;
         venues.forEach((x, i) => x.classList.toggle("on", i === f));
         fcount.textContent = `${pad2(f + 1)} / ${pad2(F.length)}`;
@@ -321,15 +331,14 @@ export function StageClient({ data }: { data: StageData }) {
         venues[f].style.setProperty("--dir", mR ? "90deg" : "270deg");
       }
 
-      // «Мне доверяют»: две орбиты логотипов вокруг микрофона, вращаются навстречу друг другу
-      const lv = Math.min(seg(p, 0.675, 0.7), 1 - seg(p, 0.76, 0.785));
+      // «Спасибо за доверие»: одно кольцо логотипов вокруг микрофона
       // один полный оборот, пока сцена видна (0.695 → 0.765); в начале и в конце логотипы на своих местах
       const target = Math.PI * 2 * ease(seg(p, 0.695, 0.765));
       if (!hovered) phase += (target - phase) * 0.2;
       if (lv > 0) {
         const mr = mic.getBoundingClientRect();
         const oy = (mr.top + mr.bottom) / 2 - H / 2;
-        const R = { rx: narrow ? W * 0.45 : Math.min(W * 0.42, 620), ry: narrow ? H * 0.17 : H * 0.17, y: narrow ? H * 0.06 : H * 0.03 };
+        const R = { rx: narrow ? W * 0.45 : Math.min(W * 0.42, 620), ry: narrow ? H * 0.17 : H * 0.15, y: narrow ? H * 0.06 : -H * 0.01 };
         const n = orbs.length;
         orbs.forEach((o, j) => {
           const t = Math.PI / 2 + (j / n) * Math.PI * 2 + phase;

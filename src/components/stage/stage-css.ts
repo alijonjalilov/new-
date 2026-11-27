@@ -38,8 +38,11 @@ html.stage-lock body{touch-action:none;scrollbar-width:none}
 .stage .R{right:max(5vw,16px);top:50%;width:min(380px,28vw)}
 .stage .T{left:50%;bottom:8vh;width:min(640px,90vw);text-align:center;z-index:7;text-shadow:0 2px 18px #000}
 .stage .T p{color:var(--mute);margin:10px 0 0}
-.stage .F{top:50%;width:min(420px,34vw);transition:left .8s cubic-bezier(.6,0,.2,1);padding:26px;border-radius:22px;background:rgba(0,0,0,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line)}
+.stage .F > *{opacity:var(--cf,1)}
+.stage .F{top:50%;width:min(420px,34vw);transition:left .35s cubic-bezier(.6,0,.2,1);padding:26px;border-radius:22px;background:rgba(0,0,0,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line)}
 .stage .F p{color:var(--mute);margin:14px 0 0;font-size:17px}
+.stage .F h2{font-size:clamp(24px,2.7vw,40px);overflow-wrap:anywhere}
+.stage .T h2{font-size:clamp(26px,3vw,44px)}
 .stage .kicker{display:block;color:var(--silver);font-weight:600;margin-bottom:14px}
 .stage h1{font-size:clamp(34px,5vw,72px);font-weight:800}
 .stage h2{font-size:clamp(28px,3.6vw,50px);font-weight:700}
