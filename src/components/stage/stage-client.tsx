@@ -22,10 +22,10 @@ export type StageData = {
   texts: StageTexts;
   hostName: string;
   parts: [string, string, string][];
-  formats: { slot: string; title: string; text: string; side: number; photo: string | null }[];
+  formats: { slot: string; title: string; text: string; side: number; photo: string | null; photoAlt: string }[];
   steps: { title: string; text: string }[];
   stats: { subtitle: string; items: { n: number; inf: boolean; label: string }[] };
-  clients: { slug: string; name: string; ratio: number; round: boolean }[];
+  clients: { slug: string; name: string; alt: string; ratio: number; round: boolean }[];
   links: { home: string; whatsapp: string; telegram: string; booking: string; langs: { code: string; short: string; name: string; href: string }[] };
 };
 
@@ -418,7 +418,7 @@ export function StageClient({ data }: { data: StageData }) {
           {F.map((f) => (
             <div key={f.slot} className="venue">
               {f.photo ? (
-                <Image src={f.photo} alt="" fill sizes="100vw" className="object-cover" />
+                <Image src={f.photo} alt={f.photoAlt} fill sizes="100vw" className="object-cover" />
               ) : (
                 <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" dangerouslySetInnerHTML={{ __html: VENUE_ART[f.slot] }} />
               )}
@@ -433,7 +433,7 @@ export function StageClient({ data }: { data: StageData }) {
             <span key={c.slug} className="orb">
               <span className="orb-c">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/images/clients/${c.slug}.png`} alt="" style={logoBox(c.ratio, c.round)} loading="lazy" decoding="async" />
+                <img src={`/images/clients/${c.slug}.png`} alt={c.alt} style={logoBox(c.ratio, c.round)} loading="lazy" decoding="async" />
               </span>
               <span className="orb-n">{c.name}</span>
             </span>
@@ -443,7 +443,7 @@ export function StageClient({ data }: { data: StageData }) {
         {/* Микрофон: целый и разобранный */}
         <div className="micbox" role="img" aria-label={tx.mic}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="asm" src="/images/stage/mic.webp" alt="" fetchPriority="high" />
+          <img className="asm" src="/images/stage/mic.webp" alt={tx.micAlt} fetchPriority="high" />
           <div className="exp">
             {PARTS.map((p, i) => (
               <div key={i} className="part" style={{ clipPath: `inset(${p.a}% 0 ${100 - p.b}% 0)` }}>
@@ -468,8 +468,11 @@ export function StageClient({ data }: { data: StageData }) {
 
         {/* 0–0.10: имя */}
         <div className="ly L" data-a="0" data-b=".1" data-d="-1">
-          <span className="kicker">{tx.kicker}</span>
-          <h1>{data.hostName}</h1>
+          <h1>
+            <span className="kicker">{tx.kicker}</span>
+            <span className="sr-only"> — </span>
+            {data.hostName}
+          </h1>
         </div>
         <div className="ly R" data-a="0" data-b=".1" data-d="1">
           <p>{tx.heroText}</p>
@@ -566,6 +569,7 @@ export function StageClient({ data }: { data: StageData }) {
         {/* 0.91–1: финал */}
         <div className="ly L" data-a=".91" data-b="1" data-d="-1">
           <h2 className="final">{tx.finalTitle}</h2>
+          <p className="seo-note">{tx.seoNote}</p>
         </div>
         <div className="ly R" data-a=".91" data-b="1" data-d="1">
           <p>{tx.finalText}</p>

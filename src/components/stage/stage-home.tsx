@@ -6,6 +6,7 @@ import { processSteps } from "@/content/process";
 import { contactLinks, site } from "@/content/site";
 import { LOCALES, LOCALE_LABELS, lp, type Locale } from "@/i18n/config";
 import { t } from "@/i18n/t";
+import { SeoJsonLd } from "@/components/seo-jsonld";
 import { getStageStats, getVenueVersions, VENUE_SLOTS, venuePhotoUrl } from "@/lib/home-design";
 
 /* Шрифты «Сцены»: для русского и английского — Unbounded + Manrope.
@@ -51,6 +52,8 @@ const TEXTS = {
   clientsList: "С кем я работал",
   languages: "Язык сайта",
   admin: "Вход в панель управления",
+  micAlt: "Микрофон ведущего Субхона Джалилова",
+  seoNote: "Веду мероприятия на таджикском языке. По запросу добавим второго ведущего на русском. Выезжаю в Худжанд, Бохтар, Куляб и в любой город Таджикистана.",
 };
 export type StageTexts = Record<keyof typeof TEXTS, string>;
 
@@ -69,14 +72,27 @@ export async function StageHome({ locale, preview }: { locale: Locale; preview: 
     formats: VENUE_SLOTS.map((slot, i) => {
       const c = getEventCategory(slot);
       const v = versions[slot];
-      return { slot, title: tr(c?.title ?? slot), text: tr(c?.short ?? ""), side: SIDES[i], photo: v ? venuePhotoUrl(slot, v) : null };
+      return {
+        slot,
+        title: tr(c?.title ?? slot),
+        text: tr(c?.short ?? ""),
+        side: SIDES[i],
+        photo: v ? venuePhotoUrl(slot, v) : null,
+        photoAlt: t(locale, "Площадка: {title}, Душанбе", { title: tr(c?.title ?? slot) }),
+      };
     }),
     steps: processSteps.map((s) => ({ title: tr(s.title), text: tr(s.text) })),
     stats: {
       subtitle: stats.subtitle[locale] || stats.subtitle.ru,
       items: stats.items.map((it) => ({ n: it.n, inf: Boolean(it.inf), label: it.label[locale] || it.label.ru })),
     },
-    clients: clients.map((c) => ({ slug: c.slug, name: clientName(c, locale), ratio: c.ratio, round: Boolean(c.round) })),
+    clients: clients.map((c) => ({
+      slug: c.slug,
+      name: clientName(c, locale),
+      alt: t(locale, "Логотип {name} — клиент ведущего Субхона Джалилова", { name: clientName(c, locale) }),
+      ratio: c.ratio,
+      round: Boolean(c.round),
+    })),
     links: {
       home: lp(locale, "/"),
       whatsapp: contactLinks.whatsapp,
@@ -88,6 +104,7 @@ export async function StageHome({ locale, preview }: { locale: Locale; preview: 
 
   return (
     <div className={`${unbounded.variable} ${manrope.variable}`}>
+      <SeoJsonLd locale={locale} />
       <StageClient data={data} />
     </div>
   );

@@ -580,4 +580,16 @@ export const en: Record<string, string> = {
   "Международные организации, банки, СМИ и государственные структуры, с которыми мы работали.": "International organisations, banks, media and government bodies we have worked with.",
   "Благодарю каждого за сотрудничество!": "Thank you all for working with me!",
   "Вход в панель управления": "Sign in to the admin panel",
+  // SEO
+  "Ведущий мероприятий в Душанбе": "Event host in Dushanbe",
+  "Субхон Джалилов (Rovi) — ведущий свадеб, тоев, конференций и корпоративов в Душанбе. Журналист, теле- и радиоведущий, программный директор «Азия-Плюс» и ведущий утренней программы «Имкон».": "Subhon Jalilov (Rovi) is a host for weddings, conferences and corporate events in Dushanbe. He is a journalist, TV and radio presenter, programme director at Asia-Plus and host of the morning show Imkon.",
+  "Веду мероприятия на таджикском языке. По запросу добавим второго ведущего на русском. Выезжаю в Худжанд, Бохтар, Куляб и в любой город Таджикистана.": "I host events in Tajik, and a second host in Russian can join on request. I travel to Khujand, Bokhtar, Kulob and any city in Tajikistan.",
+  "Свадьба и той, конференция или форум, юбилей, корпоратив, официальная церемония — напишите дату и формат, и я отвечу, свободен ли этот день.": "A wedding, conference or forum, anniversary, corporate party or official ceremony — send me the date and format, and I’ll tell you whether the day is free.",
+  "Посмотреть форматы": "See event formats",
+  "Частые вопросы": "Frequently asked questions",
+  "ведущий мероприятий в Душанбе": "event host in Dushanbe",
+  "{name} — ведущий мероприятий в Душанбе, с микрофоном": "{name}, event host in Dushanbe, with a microphone",
+  "Логотип {name} — клиент ведущего Субхона Джалилова": "{name} logo — a client of host Subhon Jalilov",
+  "Микрофон ведущего Субхона Джалилова": "Microphone of host Subhon Jalilov",
+  "Площадка: {title}, Душанбе": "Venue: {title}, Dushanbe",
 };

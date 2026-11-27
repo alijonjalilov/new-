@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { Photo } from "@/components/photo";
-import { site } from "@/content/site";
+import { site, features } from "@/content/site";
 import { lp, type Locale } from "@/i18n/config";
 import { t } from "@/i18n/t";
 
@@ -45,14 +45,16 @@ export function Hero({ locale }: { locale: Locale }) {
                 <span key={i} className="block overflow-hidden pb-[0.06em]">
                   <motion.span className="block" {...rise(0.1 + i * 0.12)}>
                     {w}
-                  </motion.span>
+                  </motion.span>{" "}
                 </span>
               ))}
             </span>
-            <motion.span {...fade(0.55)} className="mt-6 block font-display text-xl font-light tracking-tight text-brass md:mt-8 md:text-3xl">
-              {tr(site.tagline)}
-            </motion.span>
+            {/* Продолжение заголовка — для поисковиков и экранных дикторов: «… — ведущий мероприятий в Душанбе» */}
+            <span className="sr-only"> — {tr("ведущий мероприятий в Душанбе")}</span>
           </h1>
+          <motion.p {...fade(0.55)} className="mt-6 block font-display text-xl font-light tracking-tight text-brass md:mt-8 md:text-3xl">
+            {tr(site.tagline)}
+          </motion.p>
           <motion.p {...fade(0.65)} className="mt-6 text-paper/90 md:text-lg">
             {tr(site.role)}
           </motion.p>
@@ -63,9 +65,15 @@ export function Hero({ locale }: { locale: Locale }) {
             <Link href={lp(locale, "/booking")} className="btn btn-brass">
               {tr("Забронировать дату")}
             </Link>
-            <Link href={lp(locale, "/portfolio")} className="btn btn-outline">
-              {tr("Посмотреть работы")}
-            </Link>
+            {features.portfolio ? (
+              <Link href={lp(locale, "/portfolio")} className="btn btn-outline">
+                {tr("Посмотреть работы")}
+              </Link>
+            ) : (
+              <Link href={lp(locale, "/events")} className="btn btn-outline">
+                {tr("Посмотреть форматы")}
+              </Link>
+            )}
           </motion.div>
         </div>
 
@@ -77,7 +85,7 @@ export function Hero({ locale }: { locale: Locale }) {
         >
           <Photo
             src={site.photos.hero}
-            alt={`${tr(site.hostName)} — ${tr(site.role).toLowerCase()}`}
+            alt={t(locale, "{name} — ведущий мероприятий в Душанбе, с микрофоном", { name: tr(site.hostName) })}
             position="center top"
             placeholder={tr("Портрет ведущего (вертикальный, 4:5)")}
             priority

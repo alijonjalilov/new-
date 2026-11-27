@@ -44,6 +44,8 @@ html.stage-lock body{touch-action:none;scrollbar-width:none}
 .stage .F h2{font-size:clamp(24px,2.7vw,40px);overflow-wrap:anywhere}
 .stage .T h2{font-size:clamp(26px,3vw,44px)}
 .stage .kicker{display:block;color:var(--silver);font-weight:600;margin-bottom:14px}
+.stage h1 .kicker{font:600 16px/1.4 var(--f-body);letter-spacing:0}
+.stage .seo-note{font-size:14px!important;margin-top:16px!important;max-width:34ch}
 .stage h1{font-size:clamp(34px,5vw,72px);font-weight:800}
 .stage h2{font-size:clamp(28px,3.6vw,50px);font-weight:700}
 .stage h2.final{font-size:clamp(34px,4.8vw,68px);font-weight:800}

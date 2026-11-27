@@ -80,7 +80,7 @@ function ClientPill({ client, locale }: { client: Client; locale: Locale }) {
       <span className="client-logo">
         <Image
           src={`/images/clients/${client.slug}.png`}
-          alt=""
+          alt={t(locale, "Логотип {name} — клиент ведущего Субхона Джалилова", { name: clientName(client, locale) })}
           width={360}
           height={Math.round(360 / client.ratio)}
           sizes="64px"

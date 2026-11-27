@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { eventCategories } from "@/content/events";
+import { features } from "@/content/site";
 import { siteUrl } from "@/lib/site";
 import { LOCALE_LABELS, LOCALES, lp } from "@/i18n/config";
 
@@ -11,8 +12,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/booking", priority: 0.9 },
     { path: "/about", priority: 0.8 },
     { path: "/events", priority: 0.8 },
-    { path: "/portfolio", priority: 0.7 },
-    { path: "/reviews", priority: 0.6 },
+    ...(features.portfolio ? [{ path: "/portfolio", priority: 0.7 }] : []),
+    ...(features.reviews ? [{ path: "/reviews", priority: 0.6 }] : []),
     { path: "/contacts", priority: 0.7 },
     ...eventCategories.map((c) => ({ path: `/events/${c.slug}`, priority: 0.7 })),
   ];

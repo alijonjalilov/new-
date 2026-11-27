@@ -1,3 +1,4 @@
+import { features } from "@/content/site";
 import type { Metadata } from "next";
 import { PageIntro } from "@/components/section";
 import { PortfolioGrid } from "@/components/portfolio-grid";
@@ -7,7 +8,7 @@ import { t } from "@/i18n/t";
 import { pageMetadata } from "@/lib/seo";
 
 export function portfolioMetadata(locale: Locale): Metadata {
-  return pageMetadata(locale, "/portfolio", {
+  return pageMetadata(locale, "/portfolio", { noindex: !features.portfolio,
     title: t(locale, "Портфолио"),
     description: t(locale, "Фото и видео с проведённых мероприятий: свадьбы, конференции, корпоративы и другие события."),
   });

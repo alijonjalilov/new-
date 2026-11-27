@@ -34,13 +34,26 @@ export const site = {
   },
 } as const;
 
-export const nav = [
+/**
+ * Разделы, которые пока скрыты: в них ещё нет настоящих фото и отзывов.
+ * Когда появятся — поставьте true: раздел вернётся в меню, на главную и в поиск.
+ */
+export const features = {
+  portfolio: false,
+  reviews: false,
+};
+
+const allNav = [
   { href: "/about", label: "Обо мне" },
   { href: "/events", label: "Мероприятия" },
   { href: "/portfolio", label: "Портфолио" },
   { href: "/reviews", label: "Отзывы" },
   { href: "/contacts", label: "Контакты" },
 ] as const;
+
+export const nav = allNav.filter(
+  (n) => (n.href !== "/portfolio" || features.portfolio) && (n.href !== "/reviews" || features.reviews),
+);
 
 export const contactLinks = {
   phone: `tel:${site.contacts.phone.replace(/[^\d+]/g, "")}`,

@@ -1,3 +1,4 @@
+import { features } from "@/content/site";
 import type { Metadata } from "next";
 import { PageIntro } from "@/components/section";
 import { TestimonialCard } from "@/components/testimonial-card";
@@ -8,7 +9,7 @@ import { t } from "@/i18n/t";
 import { pageMetadata } from "@/lib/seo";
 
 export function reviewsMetadata(locale: Locale): Metadata {
-  return pageMetadata(locale, "/reviews", {
+  return pageMetadata(locale, "/reviews", { noindex: !features.reviews,
     title: t(locale, "Отзывы"),
     description: t(locale, "Отзывы клиентов о проведённых мероприятиях."),
   });

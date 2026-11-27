@@ -16,7 +16,7 @@ import {
 import { EVENT_TYPE_BY_KEY } from "@/lib/booking/event-types";
 import type { Answers, AnswerValue, EventTypeKey, Question } from "@/lib/booking/types";
 import type { ContactInput } from "@/lib/booking/validation";
-import { site } from "@/content/site";
+import { site, features } from "@/content/site";
 import { lp, type Locale } from "@/i18n/config";
 import { t } from "@/i18n/t";
 import { localizeQuestion } from "@/lib/booking/localize";
@@ -305,8 +305,8 @@ export function BookingWizard({ initialType, locale }: { initialType: EventTypeK
             <Link href={lp(locale, "/")} className="btn btn-primary">
               {tr("На главную")}
             </Link>
-            <Link href={lp(locale, "/portfolio")} className="btn btn-outline">
-              {tr("Посмотреть работы")}
+            <Link href={lp(locale, features.portfolio ? "/portfolio" : "/events")} className="btn btn-outline">
+              {tr(features.portfolio ? "Посмотреть работы" : "Посмотреть форматы")}
             </Link>
           </div>
         </motion.div>

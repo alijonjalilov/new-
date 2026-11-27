@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Geologica, Golos_Text } from "next/font/google";
 import { site } from "@/content/site";
 import { siteUrl } from "@/lib/site";
@@ -25,7 +26,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   title: { default: title, template: `%s — ${site.hostName}` },
   description: site.subtitle,
-  applicationName: site.hostName,
+  applicationName: "Rovi",
+  /** Коды подтверждения Google Search Console и Яндекс Вебмастера — из переменных Railway */
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+    yandex: process.env.YANDEX_VERIFICATION || undefined,
+  },
   keywords: [
     "Субхон Джалилов",
     "Subhon Jalilov",
@@ -44,7 +50,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ru_RU",
-    siteName: site.hostName,
+    siteName: "Rovi — Субхон Джалилов",
     title,
     description: site.subtitle,
     url: "/",
@@ -60,9 +66,11 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const h = await headers();
+  const lang = ["ru", "tg", "en"].includes(h.get("x-site-lang") ?? "") ? h.get("x-site-lang")! : "ru";
   return (
-    <html lang="ru" className={`${display.variable} ${sans.variable}`}>
+    <html lang={lang} className={`${display.variable} ${sans.variable}`}>
       <body>{children}</body>
     </html>
   );

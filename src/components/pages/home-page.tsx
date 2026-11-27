@@ -8,8 +8,9 @@ import { TestimonialCard } from "@/components/testimonial-card";
 import { eventCategories } from "@/content/events";
 import { portfolioItems } from "@/content/portfolio";
 import { testimonials } from "@/content/testimonials";
-import { contactLinks, site } from "@/content/site";
-import { siteUrl } from "@/lib/site";
+import { features, site } from "@/content/site";
+import { SeoJsonLd } from "@/components/seo-jsonld";
+import { HomeSeoText } from "@/components/home-seo-text";
 import { BookingBand } from "@/components/booking-band";
 import { ClientsMarquee } from "@/components/home/clients-marquee";
 import type { Metadata } from "next";
@@ -23,23 +24,10 @@ export function homeMetadata(locale: Locale): Metadata {
 
 export function HomePage({ locale }: { locale: Locale }) {
   const tr = (s: string) => t(locale, s);
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Person",
-    name: tr(site.hostName),
-    jobTitle: tr(site.role),
-    description: tr(site.subtitle),
-    url: `${siteUrl()}${lp(locale, "/")}`,
-    telephone: site.contacts.phone,
-    ...(site.contacts.email ? { email: site.contacts.email } : {}),
-    alternateName: site.hostNameLatin,
-    sameAs: [contactLinks.instagram, contactLinks.telegram],
-    address: { "@type": "PostalAddress", addressLocality: tr("Душанбе"), addressCountry: "TJ" },
-  };
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <SeoJsonLd locale={locale} />
       <Hero locale={locale} />
 
       {/* С кем я работал — сразу после первого экрана */}
@@ -104,7 +92,8 @@ export function HomePage({ locale }: { locale: Locale }) {
         </div>
       </section>
 
-      {/* Портфолио */}
+      {/* Портфолио — пока скрыто, нет настоящих фото */}
+      {features.portfolio && (
       <section className="container-site py-24 md:py-32">
         <SectionHeading
           title={tr("Работы")}
@@ -133,7 +122,10 @@ export function HomePage({ locale }: { locale: Locale }) {
         </div>
       </section>
 
-      {/* Отзывы */}
+      )}
+
+      {/* Отзывы — пока скрыто */}
+      {features.reviews && (
       <section className="container-site pb-24 md:pb-32">
         <SectionHeading
           title={tr("Отзывы")}
@@ -149,6 +141,10 @@ export function HomePage({ locale }: { locale: Locale }) {
           ))}
         </div>
       </section>
+
+      )}
+
+      <HomeSeoText locale={locale} />
 
       <BookingBand locale={locale} />
     </>

@@ -10,6 +10,8 @@ import { getEventCategory } from "@/content/events";
 import { lp, type Locale } from "@/i18n/config";
 import { t } from "@/i18n/t";
 import { pageMetadata } from "@/lib/seo";
+import { getFaq } from "@/content/faq";
+import { site } from "@/content/site";
 
 export function eventMetadata(locale: Locale, slug: string): Metadata {
   const c = getEventCategory(slug);
@@ -22,9 +24,17 @@ export function EventPage({ locale, slug }: { locale: Locale; slug: string }) {
   const c = getEventCategory(slug);
   if (!c) notFound();
 
-  const videos = c.youtube.length > 0 ? c.youtube : [undefined, undefined];
-  const mainPhoto = c.photos[0] ?? null;
-  const gallery: (string | null)[] = c.photos.length > 1 ? c.photos.slice(1) : [null, null, null];
+  // Пустые заглушки фото и видео не показываем — блок появится, когда добавите материалы в events.ts
+  const videos = c.youtube;
+  const mainPhoto = c.photos[0] ?? site.photos.hero; // пока нет фото формата — портрет ведущего
+  const gallery = c.photos.slice(1);
+  const hasMedia = videos.length > 0 || gallery.length > 0;
+  const faq = getFaq(c.slug, locale);
+  const faqLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  };
 
   return (
     <>
@@ -46,7 +56,7 @@ export function EventPage({ locale, slug }: { locale: Locale; slug: string }) {
           </div>
           <Photo
             src={mainPhoto}
-            alt={tr(c.title)}
+            alt={t(locale, "Площадка: {title}, Душанбе", { title: tr(c.title) })}
             placeholder={t(locale, "Главное фото: {title}", { title: tr(c.title).toLowerCase() })}
             locale={locale}
             priority
@@ -88,6 +98,7 @@ export function EventPage({ locale, slug }: { locale: Locale; slug: string }) {
         </div>
       </section>
 
+      {hasMedia && (
       <section className="container-site py-20 md:py-28">
         <SectionHeading title={tr("Фото и видео")} />
         <div className="grid gap-5 md:grid-cols-2">
@@ -109,6 +120,29 @@ export function EventPage({ locale, slug }: { locale: Locale; slug: string }) {
           ))}
         </div>
       </section>
+      )}
+
+      {faq.length > 0 && (
+        <section aria-labelledby="faq-title" className="container-site py-20 md:py-28">
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+          <h2 id="faq-title" className="t-h2">
+            {tr("Частые вопросы")}
+          </h2>
+          <div className="mt-10 divide-y divide-line border-y border-line">
+            {faq.map((f) => (
+              <details key={f.q} className="group py-5">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-6 text-lg font-medium">
+                  <h3 className="text-lg font-medium">{f.q}</h3>
+                  <span aria-hidden className="text-2xl text-brass-deep transition-transform group-open:rotate-45">
+                    +
+                  </span>
+                </summary>
+                <p className="measure mt-3 text-muted">{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
 
       <BookingBand locale={locale} />
     </>
