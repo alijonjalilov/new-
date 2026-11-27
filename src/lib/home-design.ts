@@ -16,14 +16,15 @@ export type VenueSlot = (typeof VENUE_SLOTS)[number];
 export const isVenueSlot = (v: unknown): v is VenueSlot => (VENUE_SLOTS as readonly string[]).includes(v as string);
 
 export type Tr = { ru: string; tg: string; en: string };
-export type StageStats = { subtitle: Tr; items: { n: number; label: Tr }[] };
+/** inf — вместо числа показывается «∞» */
+export type StageStats = { subtitle: Tr; items: { n: number; inf?: boolean; label: Tr }[] };
 
 export const DEFAULT_STATS: StageStats = {
-  subtitle: { ru: "Пример: свадьба на 300 гостей.", tg: "Мисол: тӯй барои 300 меҳмон.", en: "Example: a wedding for 300 guests." },
+  subtitle: { ru: "Пример: свадьба на 150 гостей.", tg: "Мисол: тӯй барои 150 меҳмон.", en: "Example: a wedding for 150 guests." },
   items: [
-    { n: 1, label: { ru: "вечер", tg: "шом", en: "evening" } },
-    { n: 300, label: { ru: "гостей", tg: "меҳмон", en: "guests" } },
+    { n: 150, label: { ru: "гостей", tg: "меҳмон", en: "guests" } },
     { n: 0, label: { ru: "неловких пауз", tg: "таваққуфи ногувор", en: "awkward pauses" } },
+    { n: 0, inf: true, label: { ru: "эмоций", tg: "эҳсосот", en: "emotions" } },
   ],
 };
 

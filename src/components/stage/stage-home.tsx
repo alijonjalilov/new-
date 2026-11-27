@@ -72,7 +72,7 @@ export async function StageHome({ locale, preview }: { locale: Locale; preview: 
     steps: processSteps.map((s) => ({ title: tr(s.title), text: tr(s.text) })),
     stats: {
       subtitle: stats.subtitle[locale] || stats.subtitle.ru,
-      items: stats.items.map((it) => ({ n: it.n, label: it.label[locale] || it.label.ru })),
+      items: stats.items.map((it) => ({ n: it.n, inf: Boolean(it.inf), label: it.label[locale] || it.label.ru })),
     },
     clients: clients.map((c) => ({ slug: c.slug, name: clientName(c, locale), ratio: c.ratio, round: Boolean(c.round) })),
     links: {

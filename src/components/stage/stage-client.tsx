@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Locale } from "@/i18n/config";
 import type { StageTexts } from "@/components/stage/stage-home";
 import { VENUE_ART } from "@/components/stage/venue-art";
@@ -24,7 +24,7 @@ export type StageData = {
   parts: [string, string, string][];
   formats: { slot: string; title: string; text: string; side: number; photo: string | null }[];
   steps: { title: string; text: string }[];
-  stats: { subtitle: string; items: { n: number; label: string }[] };
+  stats: { subtitle: string; items: { n: number; inf: boolean; label: string }[] };
   clients: { slug: string; name: string; ratio: number; round: boolean }[];
   links: { whatsapp: string; telegram: string; booking: string; langs: { code: string; short: string; name: string; href: string }[] };
 };
@@ -57,6 +57,48 @@ function logoBox(ratio: number, round: boolean) {
     w = h * ratio;
   }
   return { width: `${w}%`, height: `${h}%` };
+}
+
+/** Кнопка-глобус: по нажатию раскрывается список из трёх языков */
+function LangMenu({ langs, current, label }: { langs: StageData["links"]["langs"]; current: string; label: string }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    addEventListener("pointerdown", onDown);
+    addEventListener("keydown", onKey);
+    return () => {
+      removeEventListener("pointerdown", onDown);
+      removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+  return (
+    <div className="lang" ref={box}>
+      <button type="button" className="globe" aria-label={label} aria-expanded={open} aria-controls="stage-langs" onClick={() => setOpen((v) => !v)}>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z" />
+        </svg>
+      </button>
+      {open && (
+        <ul id="stage-langs" className="lang-list">
+          {langs.map((l) => (
+            <li key={l.code}>
+              <a href={l.href} lang={l.code} aria-current={l.code === current ? "true" : undefined}>
+                {l.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 export function StageClient({ data }: { data: StageData }) {
@@ -153,6 +195,7 @@ export function StageClient({ data }: { data: StageData }) {
     const pEls = $$(".part");
     const orbs = $$(".orb");
     const nums = $$("[data-n]");
+    const infs = $$("[data-inf]");
     const bigs = $$(".nums .big");
     const sts = $$(".st");
     const venues = $$(".venue");
@@ -171,9 +214,21 @@ export function StageClient({ data }: { data: StageData }) {
     let lastK = -1;
     let cur = 0;
     let raf = 0;
-    const t0 = performance.now();
+    // Орбиты крутятся только вместе с колесом; пока мышь на логотипе — стоят
+    let phase = 0;
+    let prevCur = 0;
+    let hovered: HTMLElement | null = null;
+    const zoom = new Map<HTMLElement, number>(); // плавное увеличение логотипа под мышью
+    const onOrbEnter = (e: Event) => {
+      hovered = e.currentTarget as HTMLElement;
+      hovered.classList.add("hot");
+    };
+    const onOrbLeave = (e: Event) => {
+      (e.currentTarget as HTMLElement).classList.remove("hot");
+      hovered = null;
+    };
 
-    function render(p: number, time: number) {
+    function render(p: number) {
       const narrow = innerWidth < 760;
       const H = innerHeight;
       const W = innerWidth;
@@ -243,6 +298,10 @@ export function StageClient({ data }: { data: StageData }) {
       // Цифры досчитываются от нуля
       const c = seg(p, 0.355, 0.41);
       nums.forEach((n) => (n.textContent = Math.round(+n.dataset.n! * c).toLocaleString("ru-RU")));
+      infs.forEach((n) => {
+        n.style.opacity = String(c);
+        n.style.transform = `scale(${0.6 + 0.4 * c})`;
+      });
 
       vwrap.style.opacity = String(env);
       if (f !== lastF) {
@@ -259,10 +318,11 @@ export function StageClient({ data }: { data: StageData }) {
 
       // «Мне доверяют»: две орбиты логотипов вокруг микрофона, вращаются навстречу друг другу
       const lv = Math.min(seg(p, 0.675, 0.7), 1 - seg(p, 0.76, 0.785));
+      if (!hovered) phase += (p - prevCur) * 14;
+      prevCur = p;
       if (lv > 0) {
         const mr = mic.getBoundingClientRect();
         const oy = (mr.top + mr.bottom) / 2 - H / 2;
-        const spin = (time - t0) / 1000;
         const rings = [
           { rx: narrow ? W * 0.44 : Math.min(W * 0.41, 600), ry: narrow ? H * 0.075 : H * 0.085, y: narrow ? H * 0.1 : H * 0.12, dir: 1 },
           { rx: narrow ? W * 0.33 : Math.min(W * 0.28, 410), ry: narrow ? H * 0.055 : H * 0.06, y: narrow ? -H * 0.1 : -H * 0.14, dir: -1 },
@@ -272,14 +332,22 @@ export function StageClient({ data }: { data: StageData }) {
           const n = r === 0 ? half : orbs.length - half;
           const j = r === 0 ? i : i - half;
           const R = rings[r];
-          const t = (j / n) * Math.PI * 2 + R.dir * (p * 14 + spin * 0.12);
+          const t = (j / n) * Math.PI * 2 + R.dir * phase;
           const s = Math.sin(t);
-          o.style.transform = `translate(${Math.cos(t) * R.rx}px,${oy + R.y + s * R.ry}px) scale(${0.8 + s * 0.2})`;
-          o.style.opacity = String(lv * (s > 0 ? 1 : 0.3));
-          o.style.zIndex = s > 0 ? "5" : "1";
+          const hot = o === hovered;
+          const z = (zoom.get(o) ?? 1) + ((hot ? 1.45 : 1) - (zoom.get(o) ?? 1)) * 0.25;
+          zoom.set(o, z);
+          o.style.transform = `translate(${Math.cos(t) * R.rx}px,${oy + R.y + s * R.ry}px) scale(${(0.8 + s * 0.2) * z})`;
+          o.style.opacity = String(hot ? 1 : lv * (s > 0 ? 1 : 0.3));
+          o.style.zIndex = hot ? "9" : s > 0 ? "5" : "1";
+          o.classList.toggle("live", lv > 0.6);
         });
       } else if (orbs[0]?.style.opacity !== "0") {
-        orbs.forEach((o) => (o.style.opacity = "0"));
+        orbs.forEach((o) => {
+          o.style.opacity = "0";
+          o.classList.remove("live", "hot");
+        });
+        hovered = null;
       }
 
       // Как мы работаем: большая цифра 1→4 и подсветка шагов
@@ -299,10 +367,15 @@ export function StageClient({ data }: { data: StageData }) {
     };
     addEventListener("resize", onResize);
 
-    function tick(time: number) {
+    orbs.forEach((o) => {
+      o.addEventListener("pointerenter", onOrbEnter);
+      o.addEventListener("pointerleave", onOrbLeave);
+    });
+
+    function tick() {
       cur = cur + (T - cur) * 0.09;
       if (Math.abs(T - cur) < 0.0003) cur = T;
-      render(cur, time);
+      render(cur);
       raf = requestAnimationFrame(tick);
     }
     raf = requestAnimationFrame(tick);
@@ -320,6 +393,10 @@ export function StageClient({ data }: { data: StageData }) {
       upBtn.removeEventListener("click", onUp);
       downBtn.removeEventListener("click", onDown);
       goers.forEach((a) => a.removeEventListener("click", onGo));
+      orbs.forEach((o) => {
+        o.removeEventListener("pointerenter", onOrbEnter);
+        o.removeEventListener("pointerleave", onOrbLeave);
+      });
     };
   }, [F, half, tx.hudEnd, tx.hudScroll]);
 
@@ -345,8 +422,11 @@ export function StageClient({ data }: { data: StageData }) {
         <div className="orbit" aria-hidden>
           {data.clients.map((c) => (
             <span key={c.slug} className="orb">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/images/clients/${c.slug}.png`} alt="" style={logoBox(c.ratio, c.round)} loading="lazy" decoding="async" />
+              <span className="orb-c">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/images/clients/${c.slug}.png`} alt="" style={logoBox(c.ratio, c.round)} loading="lazy" decoding="async" />
+              </span>
+              <span className="orb-n">{c.name}</span>
             </span>
           ))}
         </div>
@@ -409,9 +489,15 @@ export function StageClient({ data }: { data: StageData }) {
         <div className="ly R" data-a=".34" data-b=".44" data-d="1">
           {data.stats.items.map((s, i) => (
             <div key={i} className="stat">
-              <div className="big" data-n={s.n}>
-                {s.n.toLocaleString("ru-RU")}
-              </div>
+              {s.inf ? (
+                <div className="big inf" data-inf>
+                  ∞
+                </div>
+              ) : (
+                <div className="big" data-n={s.n}>
+                  {s.n.toLocaleString("ru-RU")}
+                </div>
+              )}
               <small>{s.label}</small>
             </div>
           ))}
@@ -490,13 +576,7 @@ export function StageClient({ data }: { data: StageData }) {
       <nav className="snav">
         <span className="logo">ROVI.TJ</span>
         <div className="snav-r">
-          <div className="langs" role="group" aria-label={tx.languages}>
-            {data.links.langs.map((l) => (
-              <a key={l.code} href={l.href} lang={l.code} aria-current={l.code === data.locale ? "true" : undefined} title={l.name}>
-                {l.short}
-              </a>
-            ))}
-          </div>
+          <LangMenu langs={data.links.langs} current={data.locale} label={tx.languages} />
           <a className="sbtn" href={data.links.booking} data-go=".95">
             {tx.navBook}
           </a>

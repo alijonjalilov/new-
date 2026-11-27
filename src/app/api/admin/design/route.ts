@@ -12,7 +12,7 @@ const schema = z.object({
   stats: z
     .object({
       subtitle: tr,
-      items: z.array(z.object({ n: z.number().int().min(0).max(1_000_000), label: tr })).length(3),
+      items: z.array(z.object({ n: z.number().int().min(0).max(1_000_000), inf: z.boolean().optional(), label: tr })).length(3),
     })
     .optional(),
 });

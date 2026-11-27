@@ -197,15 +197,22 @@ export function StatsForm({ initial }: { initial: StageStats }) {
       {stats.items.map((it, i) => (
         <fieldset key={i} className="grid gap-3 rounded-2xl border border-line p-4 md:grid-cols-[8rem_1fr_1fr_1fr]">
           <legend className="px-1 text-sm text-muted">Цифра {i + 1}</legend>
-          <label className="block">
-            <span className="field-label">Число</span>
-            <input
-              className="field tabular-nums"
-              inputMode="numeric"
-              value={String(it.n)}
-              onChange={(e) => setItem(i, { n: Number(e.target.value.replace(/\D/g, "").slice(0, 7) || 0) })}
-            />
-          </label>
+          <div className="block">
+            <label className="block">
+              <span className="field-label">Число</span>
+              <input
+                className="field tabular-nums disabled:opacity-40"
+                inputMode="numeric"
+                disabled={it.inf}
+                value={it.inf ? "∞" : String(it.n)}
+                onChange={(e) => setItem(i, { n: Number(e.target.value.replace(/\D/g, "").slice(0, 7) || 0) })}
+              />
+            </label>
+            <label className="mt-2 flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={Boolean(it.inf)} onChange={(e) => setItem(i, { inf: e.target.checked })} className="size-4 accent-velvet" />
+              ∞ вместо числа
+            </label>
+          </div>
           {LANGS.map((l) => (
             <label key={l.k} className="block">
               <span className="field-label">Подпись — {l.label}</span>
