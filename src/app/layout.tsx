@@ -7,14 +7,14 @@ import "./globals.css";
 /** Шрифт заголовков. Geologica поддерживает все таджикские буквы: Ғ Ӣ Қ Ӯ Ҳ Ҷ */
 const display = Geologica({
   subsets: ["latin", "cyrillic", "cyrillic-ext"],
-  weight: ["300", "400", "500"],
+  weight: ["300", "400", "500", "700", "800"],
   variable: "--font-display-face",
   display: "swap",
 });
 
 const sans = Golos_Text({
   subsets: ["latin", "cyrillic", "cyrillic-ext"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-golos",
   display: "swap",
 });

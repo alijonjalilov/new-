@@ -30,6 +30,16 @@ model SiteSetting {
   updatedAt DateTime @updatedAt
 }
 
+/// Фото площадок для дизайна «Сцена» (по одному на формат). Хранятся в базе,
+/// потому что файлы на сервере Railway стираются при каждом обновлении.
+model VenuePhoto {
+  /// Формат мероприятия: weddings, conferences, corporate, private, official
+  slot      String   @id
+  mime      String
+  data      Bytes
+  updatedAt DateTime @updatedAt
+}
+
 enum BookingStatus {
   NEW         // Новая
   IN_PROGRESS // В обработке

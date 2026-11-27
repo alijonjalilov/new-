@@ -1,4 +1,34 @@
-node_modules
-.next
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# next.js
+/.next/
+/out/
+/build
+next-env.d.ts.bak
+
+# misc
+.DS_Store
+*.pem
+Thumbs.db
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files — секреты никогда не коммитим
 .env
 .env.*
+!.env.example
+
+# typescript
+*.tsbuildinfo
+
+# editors
+.vscode/*
+!.vscode/extensions.json
+.idea

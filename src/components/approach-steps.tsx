@@ -1,24 +1,7 @@
 import { t } from "@/i18n/t";
 import type { Locale } from "@/i18n/config";
+import { processSteps as steps } from "@/content/process";
 
-const steps = [
-  {
-    title: "Заявка",
-    text: "Вы отвечаете на несколько вопросов о мероприятии на сайте — это помогает мне сразу понять задачу.",
-  },
-  {
-    title: "Разговор",
-    text: "Созваниваемся, уточняем детали, формат и бюджет. Подтверждаем дату.",
-  },
-  {
-    title: "Подготовка",
-    text: "Пишу сценарий, согласую его с вами и синхронизируюсь с подрядчиками и площадкой.",
-  },
-  {
-    title: "Событие",
-    text: "Веду программу. Вы проживаете свой день, а не следите за таймингом.",
-  },
-];
 
 export function ApproachSteps({ locale }: { locale: Locale }) {
   return (

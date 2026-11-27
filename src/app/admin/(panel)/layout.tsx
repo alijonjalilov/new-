@@ -32,6 +32,9 @@ export default async function AdminPanelLayout({ children }: { children: React.R
             <Link href="/admin/calendar" className="text-sm text-muted hover:text-ink">
               Календарь
             </Link>
+            <Link href="/admin/design" className="text-sm text-muted hover:text-ink">
+              Дизайн
+            </Link>
             <Link href="/admin/trash" className="text-sm text-muted hover:text-ink">
               Корзина{trashCount > 0 ? ` (${trashCount})` : ""}
             </Link>
