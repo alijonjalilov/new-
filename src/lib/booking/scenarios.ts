@@ -239,13 +239,8 @@ const secondHostBlock = (title = "Нужен ли второй ведущий?")
     title: "На каком языке должен вести второй ведущий?",
     options: [
       { value: "ru", label: "Русский" },
-      { value: "en", label: "Английский" },
-      { value: "uz", label: "Узбекский" },
       { value: "tg", label: "Таджикский" },
-      { value: "other", label: "Другой язык" },
     ],
-    otherValue: "other",
-    otherPlaceholder: "Какой язык?",
     summaryLabel: "Язык второго ведущего",
     field: "language",
     showIf: is("secondHost", "yes"),

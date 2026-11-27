@@ -1,4 +1,4 @@
-import { Manrope, Unbounded } from "next/font/google";
+import { stageFontVars } from "@/components/stage/fonts";
 import { StageClient, type StageData } from "@/components/stage/stage-client";
 import { clientName, clients } from "@/content/clients";
 import { getEventCategory } from "@/content/events";
@@ -9,10 +9,6 @@ import { t } from "@/i18n/t";
 import { SeoJsonLd } from "@/components/seo-jsonld";
 import { getStageStats, getVenueVersions, VENUE_SLOTS, venuePhotoUrl } from "@/lib/home-design";
 
-/* Шрифты «Сцены»: для русского и английского — Unbounded + Manrope.
-   В них нет таджикских букв, поэтому для таджикского — Geologica + Golos (подключены на всём сайте). */
-const unbounded = Unbounded({ subsets: ["latin", "cyrillic"], weight: ["500", "700", "800"], variable: "--font-unbounded", display: "swap" });
-const manrope = Manrope({ subsets: ["latin", "cyrillic"], weight: ["400", "600", "700"], variable: "--font-manrope", display: "swap" });
 
 /** Стороны, куда уезжает микрофон на каждом формате: 1 — вправо, −1 — влево */
 const SIDES = [1, -1, 1, -1, 1] as const;
@@ -103,7 +99,7 @@ export async function StageHome({ locale, preview }: { locale: Locale; preview: 
   };
 
   return (
-    <div className={`${unbounded.variable} ${manrope.variable}`}>
+    <div className={stageFontVars}>
       <SeoJsonLd locale={locale} />
       <StageClient data={data} />
     </div>

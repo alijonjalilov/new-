@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { STAGE_BOOKING_CSS } from "@/components/booking/stage-booking-css";
+import { cn } from "@/lib/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, Check, LoaderCircle, X } from "lucide-react";
@@ -66,7 +68,16 @@ function firstInvalid(type: EventTypeKey, a: Answers): StepKey | null {
   return q ? `q:${q.id}` : null;
 }
 
-export function BookingWizard({ initialType, locale }: { initialType: EventTypeKey | null; locale: Locale }) {
+export function BookingWizard({
+  initialType,
+  locale,
+  variant = "classic",
+}: {
+  initialType: EventTypeKey | null;
+  locale: Locale;
+  /** stage — чёрная анкета в стиле главной «Сцена с микрофоном» */
+  variant?: "classic" | "stage";
+}) {
   const tr = (s: string, v?: Record<string, string | number>) => t(locale, s, v);
   const reduceMotion = useReducedMotion();
   const [eventType, setEventType] = useState<EventTypeKey | null>(null);
@@ -282,7 +293,7 @@ export function BookingWizard({ initialType, locale }: { initialType: EventTypeK
   /* ── экран успеха ── */
   if (status === "success") {
     return (
-      <Shell progress={1} locale={locale}>
+      <Shell progress={1} locale={locale} variant={variant}>
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -342,7 +353,7 @@ export function BookingWizard({ initialType, locale }: { initialType: EventTypeK
   };
 
   return (
-    <Shell progress={progress} stepLabel={eventType ? tr("Шаг {n} из {total}", { n: idx + 1, total: steps.length }) : undefined} locale={locale}>
+    <Shell progress={progress} stepLabel={eventType ? tr("Шаг {n} из {total}", { n: idx + 1, total: steps.length }) : undefined} locale={locale} variant={variant}>
       {restored && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-paper-2 px-4 py-3 text-sm">
           <span>{tr("Мы сохранили ваши ответы с прошлого раза.")}</span>
@@ -464,19 +475,30 @@ function Shell({
   progress,
   stepLabel,
   locale,
+  variant = "classic",
 }: {
   children: React.ReactNode;
   progress: number;
   stepLabel?: string;
   locale: Locale;
+  variant?: "classic" | "stage";
 }) {
   const tr = (s: string) => t(locale, s);
+  const stage = variant === "stage";
   return (
-    <div className="flex min-h-svh flex-col">
+    <div className={cn("flex min-h-svh flex-col", stage && "bw-stage")} data-locale={locale}>
+      {stage && (
+        <>
+          <style>{STAGE_BOOKING_CSS}</style>
+          <div aria-hidden className="bw-halo" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img aria-hidden alt="" src="/images/stage/mic.webp" className="bw-mic" />
+        </>
+      )}
       <header className="sticky top-0 z-20 border-b border-line bg-paper/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-3xl items-center justify-between gap-4 px-5">
-          <Link href={lp(locale, "/")} className="font-display text-base tracking-tight">
-            {tr(site.hostName)}
+        <div className="mx-auto flex h-16 max-w-3xl items-center justify-between gap-4 px-5 bw-bar">
+          <Link href={lp(locale, "/")} className={cn("font-display text-base tracking-tight", stage && "bw-logo")}>
+            {stage ? "ROVI.TJ" : tr(site.hostName)}
           </Link>
           <div className="flex items-center gap-4">
             {stepLabel && <span className="text-sm text-muted tabular-nums">{stepLabel}</span>}
@@ -497,7 +519,7 @@ function Shell({
           <div className="h-full bg-brass-deep transition-[width] duration-500 ease-out" style={{ width: `${Math.max(progress, 0.02) * 100}%` }} />
         </div>
       </header>
-      <main id="main" className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-5 pt-8 pb-0 md:pt-14 md:pb-16">
+      <main id="main" className="bw-main mx-auto flex w-full max-w-3xl flex-1 flex-col px-5 pt-8 pb-0 md:pt-14 md:pb-16">
         {children}
       </main>
     </div>
