@@ -11,7 +11,8 @@
  * Клиент и сервер используют одни и те же сценарии, поэтому
  * сервер валидирует ровно те вопросы, которые видел пользователь.
  */
-import type { Answers, ChoiceQuestion, EventTypeKey, Option, Question, Scenario } from "./types";
+import type { ChoiceQuestion, EventTypeKey, Option, Question, Scenario } from "./types";
+import { ruleToShowIf } from "./types";
 
 /* ───────────────────────── Общие наборы вариантов ───────────────────────── */
 
@@ -93,14 +94,8 @@ const SCRIPT_READY: Option[] = [
 
 /* ───────────────────────── Хелперы условий ───────────────────────── */
 
-const is = (id: string, ...values: string[]) => (a: Answers) => {
-  const v = a[id];
-  return typeof v === "string" && values.includes(v);
-};
-const isNot = (id: string, ...values: string[]) => (a: Answers) => {
-  const v = a[id];
-  return typeof v === "string" && !values.includes(v);
-};
+const is = (id: string, ...values: string[]) => ruleToShowIf({ q: id, op: "is", values });
+const isNot = (id: string, ...values: string[]) => ruleToShowIf({ q: id, op: "isNot", values });
 
 /* ───────────────────────── Общие блоки вопросов ───────────────────────── */
 

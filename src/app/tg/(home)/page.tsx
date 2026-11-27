@@ -1,3 +1,4 @@
+import { ensureContent } from "@/lib/content/store";
 import { HomeRoute, homeMetadata } from "@/components/pages/home-route";
 
 export const metadata = homeMetadata("tg");
@@ -5,5 +6,6 @@ export const metadata = homeMetadata("tg");
 type Props = { searchParams: Promise<{ design?: string | string[] }> };
 
 export default async function Page({ searchParams }: Props) {
+  await ensureContent();
   return <HomeRoute locale="tg" searchParams={searchParams} />;
 }

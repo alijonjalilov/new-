@@ -19,5 +19,14 @@ export function t(locale: Locale, ru: string, vars?: Record<string, string | num
   return out;
 }
 
+/**
+ * Добавить переводы во время работы сайта — для текстов, изменённых в «Настройках сайта».
+ * Ключ — русский текст, значение — перевод.
+ */
+export function addTranslations(locale: Locale, map: Record<string, string>) {
+  const dict = (DICTIONARIES[locale] ??= {});
+  for (const [ru, tr] of Object.entries(map)) if (ru && tr) dict[ru] = tr;
+}
+
 /** Есть ли перевод (для проверки полноты словаря) */
 export const hasTranslation = (locale: Locale, ru: string) => locale === "ru" || Boolean(DICTIONARIES[locale]?.[ru]);

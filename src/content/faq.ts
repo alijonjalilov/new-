@@ -106,7 +106,15 @@ const WHAT: Record<string, Tr<string>> = {
   official: { ru: "официального мероприятия", tg: "барои маросими расмӣ", en: "for an official ceremony" },
 };
 
-export function getFaq(slug: string, locale: Locale): QA[] {
+/** Вопросы, изменённые в «Настройках сайта» (slug → список на трёх языках) */
+let override: Record<string, { q: Record<Locale, string>; a: Record<Locale, string> }[]> | null = null;
+export function setFaqOverride(v: typeof override) {
+  override = v;
+}
+
+export function getFaq(slug: string, locale: Locale, opts?: { original?: boolean }): QA[] {
+  const o = opts?.original ? undefined : override?.[slug];
+  if (o) return o.map((x) => ({ q: x.q[locale] || x.q.ru, a: x.a[locale] || x.a.ru })).filter((x) => x.q && x.a);
   const what = WHAT[slug]?.[locale];
   if (!what) return [];
   const list = [price[locale](what), language[locale], travel[locale], booking[locale], how[locale]];

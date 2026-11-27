@@ -110,5 +110,18 @@ export interface Scenario {
   questions: Question[];
 }
 
+/** Условие показа в виде данных (чтобы его можно было менять в «Настройках сайта») */
+export type ShowIfRule = { q: string; op: "is" | "isNot"; values: string[] };
+
+/** Превращает условие-данные в функцию; само условие остаётся доступно как fn.rule */
+export function ruleToShowIf(rule: ShowIfRule): ((a: Answers) => boolean) & { rule: ShowIfRule } {
+  const fn = (a: Answers) => {
+    const v = a[rule.q];
+    if (typeof v !== "string") return false;
+    return rule.op === "is" ? rule.values.includes(v) : !rule.values.includes(v);
+  };
+  return Object.assign(fn, { rule });
+}
+
 /** Ключ, под которым хранится текстовое уточнение для варианта «Другое». */
 export const otherKey = (questionId: string) => `${questionId}__other`;

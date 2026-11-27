@@ -10,6 +10,7 @@ import { siteUrl } from "@/lib/site";
 import { t } from "@/i18n/t";
 import { isLocale, type Locale } from "@/i18n/config";
 import { isSiteClosed } from "@/lib/site-settings";
+import { ensureContent } from "@/lib/content/store";
 import { conflictMessage, findConflicts } from "@/lib/booking/schedule";
 import { loadConfirmedOn } from "@/lib/booking/schedule-db";
 
@@ -23,6 +24,7 @@ export async function POST(request: Request) {
   const headerLocale = request.headers.get("x-site-locale");
   const refLocale: Locale = isLocale(headerLocale) ? headerLocale : "ru";
 
+  await ensureContent();
   if (await isSiteClosed()) {
     return NextResponse.json(
       { ok: false, message: t(refLocale, "Сайт временно закрыт. Позвоните или напишите нам напрямую.") },

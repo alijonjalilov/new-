@@ -4,6 +4,7 @@ import { PreviewBadge } from "@/components/pages/home-route";
 import { getAdminSession } from "@/lib/auth";
 import { eventTypeFromSlug } from "@/lib/booking/event-types";
 import { getHomeDesign, isHomeDesign } from "@/lib/home-design";
+import { getBookingOverride } from "@/lib/content/store";
 import type { Locale } from "@/i18n/config";
 
 type SP = { type?: string | string[]; design?: string | string[] };
@@ -17,6 +18,7 @@ export async function BookingRoute({ locale, searchParams }: { locale: Locale; s
   const sp = await searchParams;
   const one = (v?: string | string[]) => (Array.isArray(v) ? v[0] : v);
   const initialType = eventTypeFromSlug(one(sp.type));
+  const bookingData = await getBookingOverride();
   let design = await getHomeDesign();
   let preview = false;
   const asked = one(sp.design);
@@ -27,7 +29,7 @@ export async function BookingRoute({ locale, searchParams }: { locale: Locale; s
   if (design === "stage") {
     return (
       <div className={stageFontVars}>
-        <BookingWizard initialType={initialType} locale={locale} variant="stage" />
+        <BookingWizard initialType={initialType} locale={locale} variant="stage" bookingData={bookingData} />
         {preview && <PreviewBadge />}
       </div>
     );
@@ -35,7 +37,7 @@ export async function BookingRoute({ locale, searchParams }: { locale: Locale; s
   return (
     <>
       {preview && <PreviewBadge />}
-      <BookingWizard initialType={initialType} locale={locale} />
+      <BookingWizard initialType={initialType} locale={locale} bookingData={bookingData} />
     </>
   );
 }

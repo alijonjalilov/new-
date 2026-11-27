@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { STAGE_BOOKING_CSS } from "@/components/booking/stage-booking-css";
+import { applyBookingData, type BookingData } from "@/lib/content/booking-data";
 import { cn } from "@/lib/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -72,12 +73,20 @@ export function BookingWizard({
   initialType,
   locale,
   variant = "classic",
+  bookingData = null,
 }: {
   initialType: EventTypeKey | null;
   locale: Locale;
   /** stage — чёрная анкета в стиле главной «Сцена с микрофоном» */
   variant?: "classic" | "stage";
+  /** Анкета, изменённая в «Настройках сайта» (null — исходная) */
+  bookingData?: BookingData | null;
 }) {
+  // Применяем вопросы из «Настроек сайта» до первого расчёта шагов
+  useState(() => {
+    applyBookingData(bookingData);
+    return true;
+  });
   const tr = (s: string, v?: Record<string, string | number>) => t(locale, s, v);
   const reduceMotion = useReducedMotion();
   const [eventType, setEventType] = useState<EventTypeKey | null>(null);

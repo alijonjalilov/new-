@@ -1,3 +1,4 @@
+import { ensureContent } from "@/lib/content/store";
 import type { Metadata } from "next";
 import { EventPage, eventMetadata } from "@/components/pages/event-page";
 import { eventCategories } from "@/content/events";
@@ -11,11 +12,13 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  await ensureContent();
   const { slug } = await params;
   return eventMetadata("ru", slug);
 }
 
 export default async function Page({ params }: Props) {
+  await ensureContent();
   const { slug } = await params;
   return <EventPage locale="ru" slug={slug} />;
 }

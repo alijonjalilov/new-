@@ -1,7 +1,9 @@
+import { ensureContent } from "@/lib/content/store";
 import { ReviewsPage, reviewsMetadata } from "@/components/pages/reviews-page";
 
 export const metadata = reviewsMetadata("en");
 
-export default function Page() {
+export default async function Page() {
+  await ensureContent();
   return <ReviewsPage locale="en" />;
 }

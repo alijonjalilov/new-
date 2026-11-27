@@ -1,7 +1,9 @@
+import { ensureContent } from "@/lib/content/store";
 import { PortfolioPage, portfolioMetadata } from "@/components/pages/portfolio-page";
 
 export const metadata = portfolioMetadata("tg");
 
-export default function Page() {
+export default async function Page() {
+  await ensureContent();
   return <PortfolioPage locale="tg" />;
 }

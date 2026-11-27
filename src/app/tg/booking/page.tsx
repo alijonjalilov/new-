@@ -1,3 +1,4 @@
+import { ensureContent } from "@/lib/content/store";
 import type { Metadata } from "next";
 import { BookingRoute } from "@/components/pages/booking-route";
 import { pageMetadata } from "@/lib/seo";
@@ -11,5 +12,6 @@ export const metadata: Metadata = pageMetadata("tg", "/booking", {
 type Props = { searchParams: Promise<{ type?: string | string[]; design?: string | string[] }> };
 
 export default async function BookingPage({ searchParams }: Props) {
+  await ensureContent();
   return <BookingRoute locale="tg" searchParams={searchParams} />;
 }
