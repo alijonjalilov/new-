@@ -477,7 +477,7 @@ export function StageClient({ data }: { data: StageData }) {
         <div className="ly R" data-a="0" data-b=".1" data-d="1">
           <p>{tx.heroText}</p>
           <div className="row">
-            <a className="sbtn" href={data.links.booking} data-go=".95">
+            <a className="sbtn" href={data.links.booking}>
               {tx.book}
             </a>
             <a className="sbtn ghost" href="#formats" data-go=".47">
@@ -600,7 +600,7 @@ export function StageClient({ data }: { data: StageData }) {
             </svg>
           </a>
           <LangMenu langs={data.links.langs} current={data.locale} label={tx.languages} />
-          <a className="sbtn" href={data.links.booking} data-go=".95">
+          <a className="sbtn" href={data.links.booking}>
             {tx.navBook}
           </a>
         </div>
