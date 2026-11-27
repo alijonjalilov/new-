@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAdminSession, getAuthConfig } from "@/lib/auth";
 import { LoginForm } from "@/components/admin/login-form";
@@ -13,7 +14,10 @@ export default async function AdminLoginPage() {
   return (
     <main id="main" className="flex min-h-svh items-center justify-center px-5 py-16">
       <div className="w-full max-w-sm">
-        <p className="font-display text-lg">{site.hostName}</p>
+        {/* Имя — ссылка на главную страницу сайта */}
+        <Link href="/" className="font-display text-lg hover:text-brass-deep" title="На главную страницу сайта">
+          {site.hostName}
+        </Link>
         <h1 className="mt-2 font-display text-3xl font-light tracking-tight">Вход в админ-панель</h1>
 
         {cfg.configured ? (
